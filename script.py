@@ -1,5 +1,6 @@
 import os
 import pyautogui
+import pywinauto
 import time
 from time import sleep
 from datetime import datetime
@@ -38,7 +39,6 @@ def noSound_discord():
 
 def mute_ms_teams():
     pyautogui.hotkey('ctrl' 'shift', 'm')
-
 
 try:
     pass
