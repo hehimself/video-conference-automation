@@ -41,8 +41,9 @@ def mute_ms_teams():
 
 
 try:
+    pass
     #open_ms_teams()
     #open_discord()
-    mute_discord()
+    #mute_discord()
 except Exception as execption:
     print(execption)
