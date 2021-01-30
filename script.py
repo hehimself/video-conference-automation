@@ -28,13 +28,18 @@ def open_discord():
 
 def mute_discord():
     sleep(5)
-    discord = pyautogui.locateCenterOnScreen("images/discord.PNG")
-    pyautogui.moveTo(discord)
-    pyautogui.click
+    # discord = pyautogui.locateCenterOnScreen("images/discord.PNG")
+    # pyautogui.moveTo(discord)
+    # pyautogui.click
     pyautogui.hotkey('ctrl', 'shift', 'm')
 
 def noSound_discord():
     pyautogui.hotkey('ctrl', 'shift', 'd')
+
+def mute_ms_teams():
+    pyautogui.hotkey('ctrl' 'shift', 'm')
+
+
 try:
     #open_ms_teams()
     #open_discord()
