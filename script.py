@@ -31,21 +31,18 @@ def open_discord():
     pyautogui.click()
 
 def mute_discord():
-    sleep(5)
-    # discord = pyautogui.locateCenterOnScreen("images/discord.PNG")
-    # pyautogui.moveTo(discord)
-    # pyautogui.click
     pyautogui.hotkey('ctrl', 'shift', 'm')
 
 def noSound_discord():
     pyautogui.hotkey('ctrl', 'shift', 'd')
 
 def mute_ms_teams():
-    pyautogui.hotkey('ctrl' 'shift', 'm')
+    pyautogui.hotkey('ctrl', 'shift', 'm')
 
 def end_teams_call():
-    pyautogui.hotkey('ctrl' 'shift', 'b')
+    pyautogui.hotkey('ctrl', 'shift', 'b')
 
+#Funktionen ohne .set_focus() zuvor nötig
 def volume_up():
     pyautogui.press('volumeup')
 
