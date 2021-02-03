@@ -1,7 +1,8 @@
 import os
 import pyautogui
 import pywinauto
-from pywinauto import Application
+from pywinauto import application
+from pywinauto.findwindows import WindowAmbiguousError, WindowNotFoundError
 import time
 from time import sleep
 from datetime import datetime
@@ -42,11 +43,27 @@ def mute_ms_teams():
     pyautogui.hotkey('ctrl' 'shift', 'm')
 
 def test_pywinauto():
-    # app = Application(backend="uia")
-    # app = pywinauto.Application.window(best_match="Unbenannt - Editor")
-    app = pywinauto.application.Application()
-    w_handle = pywinauto.findwindows.find_window(best_match="Unbenannt - Editor")
-    # paste somewhere
+    app = application.Application()
+    app_title = "Teams"
+    
+    try:
+        app.connect(title_re=app_title)
+        
+        #Acces app's window object
+        app_dialog = app.window()
+        
+        # app_dialog.minimize()
+        # app_dialog.restore()
+        app_dialog.set_focus()
+        pyautogui.hotkey('ctrl', '1')
+        time.sleep(2)
+        pyautogui.hotkey('ctrl', '2')
+
+    except(WindowNotFoundError):
+        print("Window: %s not Found" % app_title)
+    except(WindowAmbiguousError):
+        print("There are to many %s windows found" % app_title)
+        
 
 try:
     test_pywinauto()
