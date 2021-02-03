@@ -11,7 +11,6 @@ def show_rand_app():
     # Init App object
     app = application.Application()
 
-    random_app = random.choice(APPS_POOL)
     try:
         app.connect(title_re="Teams")
 

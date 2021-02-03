@@ -42,33 +42,54 @@ def noSound_discord():
 def mute_ms_teams():
     pyautogui.hotkey('ctrl' 'shift', 'm')
 
-def test_pywinauto():
-    app = application.Application()
-    app_title = "Teams"
+def end_teams_call():
+    pyautogui.hotkey('ctrl' 'shift', 'b')
+
+def volume_up():
+    pyautogui.press('volumeup')
+
+def volume_down():
+    pyautogui.press('volumedown')
+
+def main():
+    app_teams = application.Application()
+    app_teams_title = "Teams"
+    app_discord = application.Application()
+    app_discord_title = "Discord"
+    try:
+        app_teams.connect(title_re=app_teams_title)
+        
+        #Acces app_teams's window object
+        app_teams_dialog = app_teams.window()
+    except(WindowNotFoundError):
+        print("Window: %s not Found" % app_teams_title)
+    except(WindowAmbiguousError):
+        print("There are to many %s windows found" % app_teams_title)
     
     try:
-        app.connect(title_re=app_title)
-        
-        #Acces app's window object
-        app_dialog = app.window()
-        
-        # app_dialog.minimize()
-        # app_dialog.restore()
-        app_dialog.set_focus()
-        pyautogui.hotkey('ctrl', '1')
-        time.sleep(2)
-        pyautogui.hotkey('ctrl', '2')
+        app_discord.connect(title_re=app_discord_title)
 
+        # Access app's window object
+        app_discord_dialog = app_discord.window()
     except(WindowNotFoundError):
-        print("Window: %s not Found" % app_title)
+        print("Window: %s not Found" % app_discord_title)
     except(WindowAmbiguousError):
-        print("There are to many %s windows found" % app_title)
+        print("There are to many %s windows found" % app_discord_title)
+
+    #kurzer Test
+    app_teams_dialog.set_focus()
+    pyautogui.hotkey('ctrl', '1')
+    time.sleep(2)
+    pyautogui.hotkey('ctrl', '2')
+    app_discord_dialog.set_focus()
+    noSound_discord()
+    time.sleep(2)
+    noSound_discord()
+    app_teams_dialog.set_focus()
         
 
 try:
-    test_pywinauto()
-    #open_ms_teams()
-    #open_discord()
-    #mute_discord()
+    # main()
+    volume_down()
 except Exception as execption:
     print(execption)
