@@ -1,6 +1,7 @@
 import os
 import pyautogui
 import pywinauto
+from pywinauto import Application
 import time
 from time import sleep
 from datetime import datetime
@@ -40,8 +41,15 @@ def noSound_discord():
 def mute_ms_teams():
     pyautogui.hotkey('ctrl' 'shift', 'm')
 
+def test_pywinauto():
+    # app = Application(backend="uia")
+    # app = pywinauto.Application.window(best_match="Unbenannt - Editor")
+    app = pywinauto.application.Application()
+    w_handle = pywinauto.findwindows.find_window(best_match="Unbenannt - Editor")
+    # paste somewhere
+
 try:
-    pass
+    test_pywinauto()
     #open_ms_teams()
     #open_discord()
     #mute_discord()
