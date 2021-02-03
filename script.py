@@ -3,6 +3,7 @@ import pyautogui
 import pywinauto
 from pywinauto import application
 from pywinauto.findwindows import WindowAmbiguousError, WindowNotFoundError
+from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
 import time
 from time import sleep
 from datetime import datetime
@@ -51,6 +52,50 @@ def volume_up():
 def volume_down():
     pyautogui.press('volumedown')
 
+def set_volume_discord_up():
+    sessions = AudioUtilities.GetAllSessions()
+    for session in sessions:
+        volume = session._ctl.QueryInterface(ISimpleAudioVolume)
+        if session.Process and session.Process.name() == "Discord.exe":
+            print("volume.GetMasterVolume(): %s" % volume.GetMasterVolume())
+            volume_up_rate = volume.GetMasterVolume() + 0.05
+            if volume_up_rate > 1:
+                volume_up_rate = 1
+            volume.SetMasterVolume(volume_up_rate, None)
+
+def set_volume_discord_down():
+    sessions = AudioUtilities.GetAllSessions()
+    for session in sessions:
+        volume = session._ctl.QueryInterface(ISimpleAudioVolume)
+        if session.Process and session.Process.name() == "Discord.exe":
+            print("volume.GetMasterVolume(): %s" % volume.GetMasterVolume())
+            volume_up_rate = volume.GetMasterVolume() - 0.05
+            if volume_up_rate < 0:
+                volume_up_rate = 0
+            volume.SetMasterVolume(volume_up_rate, None)
+
+def set_volume_teams_down():
+    sessions = AudioUtilities.GetAllSessions()
+    for session in sessions:
+        volume = session._ctl.QueryInterface(ISimpleAudioVolume)
+        if session.Process and session.Process.name() == "Teams.exe":
+            print("volume.GetMasterVolume(): %s" % volume.GetMasterVolume())
+            volume_up_rate = volume.GetMasterVolume() - 0.05
+            if volume_up_rate < 0:
+                volume_up_rate = 0
+            volume.SetMasterVolume(volume_up_rate, None)
+
+def set_volume_teams_up():
+    sessions = AudioUtilities.GetAllSessions()
+    for session in sessions:
+        volume = session._ctl.QueryInterface(ISimpleAudioVolume)
+        if session.Process and session.Process.name() == "Teams.exe":
+            print("volume.GetMasterVolume(): %s" % volume.GetMasterVolume())
+            volume_up_rate = volume.GetMasterVolume() + 0.05
+            if volume_up_rate > 1:
+                volume_up_rate = 1
+            volume.SetMasterVolume(volume_up_rate, None)
+
 def main():
     app_teams = application.Application()
     app_teams_title = "Teams"
@@ -90,6 +135,6 @@ def main():
 
 try:
     # main()
-    volume_down()
+    set_volume_teams_up()
 except Exception as execption:
     print(execption)

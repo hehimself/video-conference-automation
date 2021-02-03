@@ -1,2 +1,4 @@
 pyautogui
+pywinauto
+pycaw
 time
