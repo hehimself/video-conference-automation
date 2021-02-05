@@ -6,7 +6,7 @@
 [![Generic badge](https://img.shields.io/badge/Status-in%20progress-orange.svg)]()
 [![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/hehimself/video-conference-automation/blob/main/LICENSE)
 
-> You know that... your sitting in your MS Teams class but would much rather talk to your friends ore classmates over Discord. Thats just one example where this automation tool with the Raspberry Pico and the Pimoroni RGB Keypad could be helpfull.
+> You know that... your sitting in your MS Teams class but would much rather talk to your friends or classmates over Discord. Thats just one example where this automation tool with the Raspberry Pico and the Pimoroni RGB Keypad could be helpfull.
 
 Inspired by products like the Elgatoo StreamDeck, here is the better and cheaper solution.
 
@@ -57,8 +57,8 @@ special features:
 
 | Automation         	| Description                                                                                                    	|
 |--------------------	|----------------------------------------------------------------------------------------------------------------	|
-| "startup" function 	| just one click and your whole home-schooling/gaming setup is ready eveything is done for you automatically     	|
-| "goodby" function  	| with just one click you leave the meeting, close Teams, go to Discord and you're ready for gaming              	|
+| "startup" function 	| just one click and your whole home-schooling/gaming setup is ready, eveything is done for you automatically     	|
+| "goodby" function  	| with just one click you leave the meeting, close Teams, go to Discord and you're ready for gaming.              	|
 | "switch" function  	| you've got asked something by the teacher and have to switch very quickly bewteen Discord and Teams. or around 	|
 
 
