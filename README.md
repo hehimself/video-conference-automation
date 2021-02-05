@@ -1,5 +1,5 @@
 # video conference automation
-![video conference automation](/images/header.PNG)
+![video conference automation](/images/header.png)
 
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 [![Generic badge](https://img.shields.io/badge/Made%20with-MicroPython-1f425f.svg)](http://docs.micropython.org/en/latest/)
