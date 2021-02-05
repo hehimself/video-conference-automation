@@ -1,21 +1,19 @@
-# Project Name
-> Here goes your awesome project description!
+# video conference automation
+> You know that... your sitting in your MS Teams class but would much rather talk to your friends ore classmates over Discord. Thats just one example where this automation tool with the Raspberry Pico and the Pimoroni RGB Keypad could be helpfull.
+
+Inspired by products like the Elgatoo StreamDeck, here is the better and cheaper solution.
 
 ## Table of contents
 * [General info](#general-info)
-* [Screenshots](#screenshots)
 * [Technologies](#technologies)
 * [Setup](#setup)
 * [Features](#features)
-* [Status](#status)
-* [Inspiration](#inspiration)
 * [Contact](#contact)
 
 ## General info
 Add more general information about project. What the purpose of the project is? Motivation?
 
-## Screenshots
-![Example screenshot](./img/screenshot.png)
+![Pimoroni RGB Keypad](/images/Discord.PNG)
 
 ## Technologies
 * Tech 1 - version 1.0
@@ -27,23 +25,25 @@ Describe how to install / setup your local environement / add link to demo versi
 
 ## Code Examples
 Show examples of usage:
-`put-your-code-here`
+`def mute_discord():`
+
+realsy code example:
+```python
+def mute_discord():
+```
 
 ## Features
-List of features ready and TODOs for future development
-* Awesome feature 1
-* Awesome feature 2
-* Awesome feature 3
+General functions
+* mute/unmute Discord and Teams
+* the win-focus is always set to the right programm (important for keyboard shortcuts)
+* control the general Volume
+* control the volume of Discord or Teams
 
-To-do list:
-* Wow improvement to be done 1
-* Wow improvement to be done 2
+special features:
+* "startup" automation: just one click and your whole home-schooling/gaming setup is ready
+* "goodby" automation: with one click you leave the meeting, close Teams, go to Discord, unmute Discord...ready for free Time
+* **"switch" automation**: you've got asked someting by the teacher aan have to switch very quickly between Discord and Teams.
 
-## Status
-Project is: _in progress_, _finished_, _no longer continue_ and why?
-
-## Inspiration
-Add here credits. Project inspired by..., based on...
 
 ## Contact
 Created by [@hehimself](https://github.com/hehimself) - feel free to contact me!
