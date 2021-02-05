@@ -51,9 +51,15 @@ General functions
 * control the volume of Discord or Teams
 
 special features:
-* "startup" automation: just one click and your whole home-schooling/gaming setup is ready
-* "goodby" automation: with one click you leave the meeting, close Teams, go to Discord, unmute Discord...ready for free Time
-* **"switch" automation**: you've got asked someting by the teacher aan have to switch very quickly between Discord and Teams.
+* "startup" automation
+* "goodby" automation
+* **"switch" automation**
+
+| Automation         	| Description                                                                                                    	|
+|--------------------	|----------------------------------------------------------------------------------------------------------------	|
+| "startup" function 	| just one click and your whole home-schooling/gaming setup is ready eveything is done for you automatically     	|
+| "goodby" function  	| with just one click you leave the meeting, close Teams, go to Discord and you're ready for gaming              	|
+| "switch" function  	| you've got asked something by the teacher and have to switch very quickly bewteen Discord and Teams. or around 	|
 
 
 ## Contact
