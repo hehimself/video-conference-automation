@@ -1,4 +1,9 @@
 # video conference automation
+[![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
+[![Generic badge](https://img.shields.io/badge/Made%20with-MicroPython-1f425f.svg)](http://docs.micropython.org/en/latest/)
+[![Generic badge](https://img.shields.io/badge/Status-in%20progress-orange.svg)]()
+[![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/hehimself/video-conference-automation/blob/main/LICENSE)
+
 > You know that... your sitting in your MS Teams class but would much rather talk to your friends ore classmates over Discord. Thats just one example where this automation tool with the Raspberry Pico and the Pimoroni RGB Keypad could be helpfull.
 
 Inspired by products like the Elgatoo StreamDeck, here is the better and cheaper solution.
@@ -16,9 +21,13 @@ Add more general information about project. What the purpose of the project is? 
 ![Pimoroni RGB Keypad](/images/discord.PNG)
 
 ## Technologies
-* Tech 1 - version 1.0
-* Tech 2 - version 2.0
-* Tech 3 - version 3.0
+### Hardware
+* [Raspberry Pico](https://www.raspberrypi.org/documentation/pico/getting-started/)
+* [Pimoroni RGB keypad Base](https://shop.pimoroni.com/products/pico-rgb-keypad-base)
+### Libarys
+* [PyAutoGUI](https://pyautogui.readthedocs.io/en/latest/) - used for hotkeys and screen analysis
+* [pywinauto](https://pywinauto.readthedocs.io/en/latest/contents.html) - used to solve the active-window-problem
+* [pycaw](https://github.com/AndreMiras/pycaw)  - used to control the volume
 
 ## Setup
 Describe how to install / setup your local environement / add link to demo version.
