@@ -1,4 +1,6 @@
 # video conference automation
+![video conference automation](/images/header.PNG)
+
 [![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
 [![Generic badge](https://img.shields.io/badge/Made%20with-MicroPython-1f425f.svg)](http://docs.micropython.org/en/latest/)
 [![Generic badge](https://img.shields.io/badge/Status-in%20progress-orange.svg)]()
@@ -18,7 +20,7 @@ Inspired by products like the Elgatoo StreamDeck, here is the better and cheaper
 ## General info
 Add more general information about project. What the purpose of the project is? Motivation?
 
-![Pimoroni RGB Keypad](/images/discord.PNG)
+
 
 ## Technologies
 ### Hardware
