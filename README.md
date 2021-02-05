@@ -13,7 +13,7 @@ Inspired by products like the Elgatoo StreamDeck, here is the better and cheaper
 ## General info
 Add more general information about project. What the purpose of the project is? Motivation?
 
-![Pimoroni RGB Keypad](/images/Discord.PNG)
+![Pimoroni RGB Keypad](/images/discord.PNG)
 
 ## Technologies
 * Tech 1 - version 1.0
