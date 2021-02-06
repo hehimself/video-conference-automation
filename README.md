@@ -32,7 +32,7 @@ Add more general information about project. What the purpose of the project is? 
 * [pycaw](https://github.com/AndreMiras/pycaw)  - used to control the volume
 
 ## Setup
-Describe how to install / setup your local environement / add link to demo version.
+To run the scirpt on your computer
 
 ## Code Examples
 Show examples of usage:

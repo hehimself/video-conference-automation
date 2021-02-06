@@ -1,4 +1,5 @@
 import os
+import serial
 import pyautogui
 import pywinauto
 from pywinauto import application
