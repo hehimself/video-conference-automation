@@ -14,6 +14,30 @@ try:
 except serial.serialutil.SerialException:
     exit("Serieller Port nicht angeschlossen")
 
+app_teams = application.Application()
+app_teams_title = "Teams"
+app_discord = application.Application()
+app_discord_title = "Discord"
+try:
+    app_teams.connect(title_re=app_teams_title)
+    
+    #Acces app_teams's window object
+    app_teams_dialog = app_teams.window()
+except(WindowNotFoundError):
+    print("Window: %s not Found" % app_teams_title)
+except(WindowAmbiguousError):
+    print("There are to many %s windows found" % app_teams_title)
+
+try:
+    app_discord.connect(title_re=app_discord_title)
+
+    # Access app's window object
+    app_discord_dialog = app_discord.window()
+except(WindowNotFoundError):
+    print("Window: %s not Found" % app_discord_title)
+except(WindowAmbiguousError):
+    print("There are to many %s windows found" % app_discord_title)
+
 def open_ms_teams():
     os.startfile("C:/Users/marvin/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Microsoft Teams")
     #Teams
@@ -47,6 +71,9 @@ def mute_ms_teams():
 
 def end_teams_call():
     pyautogui.hotkey('ctrl', 'shift', 'b')
+
+def teams_raise_hand():
+    pyautogui.hotkey('ctrl', 'shift', 'k')
 
 #Funktionen ohne .set_focus() zuvor nötig
 def volume_up():
@@ -104,47 +131,29 @@ def get_serial():
     decoded_bytes = float(serial_message[0:len(serial_message)-2].decode("utf-8"))
     return decoded_bytes
 
-def main():
-    app_teams = application.Application()
-    app_teams_title = "Teams"
-    app_discord = application.Application()
-    app_discord_title = "Discord"
-    try:
-        app_teams.connect(title_re=app_teams_title)
-        
-        #Acces app_teams's window object
-        app_teams_dialog = app_teams.window()
-    except(WindowNotFoundError):
-        print("Window: %s not Found" % app_teams_title)
-    except(WindowAmbiguousError):
-        print("There are to many %s windows found" % app_teams_title)
-    
-    try:
-        app_discord.connect(title_re=app_discord_title)
-
-        # Access app's window object
-        app_discord_dialog = app_discord.window()
-    except(WindowNotFoundError):
-        print("Window: %s not Found" % app_discord_title)
-    except(WindowAmbiguousError):
-        print("There are to many %s windows found" % app_discord_title)
-
-    #kurzer Test
-    # app_teams_dialog.set_focus()
-    # pyautogui.hotkey('ctrl', '1')
-    # time.sleep(2)
-    # pyautogui.hotkey('ctrl', '2')
-    # app_discord_dialog.set_focus()
-    # noSound_discord()
-    # time.sleep(2)
-    # noSound_discord()
-    # app_teams_dialog.set_focus()
-        
+def main(command):
+    if command == 9:
+        app_teams_dialog.set_focus()
+        teams_raise_hand()
+    elif command == 13:
+        app_teams_dialog.set_focus()
+        mute_ms_teams()
+    elif command == 14:
+        app_discord_dialog.set_focus()
+        mute_discord()
+    elif command == 15:
+        app_discord_dialog.set_focus()
+        noSound_discord()
+    elif command == 16:
+        pass 
+    else:
+        print("falscher command")   
 
 try:
     while True:
-        befehl = get_serial()
-        print(befehl)
+        command = get_serial()
+        print(command)
+        main(command)
     # main()
     #set_volume_teams_up()
 except Exception as execption:
