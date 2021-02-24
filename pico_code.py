@@ -376,7 +376,13 @@ class RGBKeypad():
 #------------------------------------------------------------------
 
 def init_keypad_color():
-    
+    key_2.color = (10, 10, 0)
+    key_6.color = (10, 10, 0)
+    key_3.color = (10, 0, 64)
+    key_7.color = (10, 0, 64)
+    key_4.color = (1, 0, 64)
+    key_8.color = (1, 0, 64)
+    key_9.color = (40, 20, 0)
 
 keypad = RGBKeypad()
 
@@ -406,6 +412,7 @@ key_14_status = True
 key_15_status = True
 key_16_status = True
 
+init_keypad_color()
 
 # turn a key blue when pressed
 while True:
@@ -472,11 +479,20 @@ while True:
                 while key_9.is_pressed():
                     time.sleep(0.1)
         if key_10.is_pressed():
-            pass
+            while key_10.is_pressed():
+                key_10.color = (255, 0, 0)
+                time.sleep(0.1)
+            key_10.color = (0, 0, 0)
         if key_11.is_pressed():
-            pass
+            while key_11.is_pressed():
+                key_11.color = (255, 0, 0)
+                time.sleep(0.1)
+            key_11.color = (0, 0, 0)
         if key_12.is_pressed():
-            pass
+            while key_12.is_pressed():
+                key_12.color = (255, 0, 0)
+                time.sleep(0.1)
+            key_12.color = (0, 0, 0)
         if key_13.is_pressed():
             if key_13_status:
                 key_13.color = (0, 255, 0)
@@ -539,7 +555,8 @@ while True:
                 key_14.color = (0, 255, 0)
                 key_14_status = False
             while key_16.is_pressed():
-                key_16.color = (0, 0, 50)
+                key_16.color = (0, 0, 255)
                 time.sleep(0.1)
             key_16.color = (10, 10, 10)
+        
         
