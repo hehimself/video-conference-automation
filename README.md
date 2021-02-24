@@ -18,7 +18,7 @@ Inspired by products like the Elgatoo StreamDeck, here is the better and cheaper
 * [Contact](#contact)
 
 ## General info
-comming soon
+The Pico has a serial connection to the PC over USB. The Pico sends the pushed buttons as numbers to the PC and the `script.py` than taked the action. 
 
 ![pimoroni rgb keypad](https://cdn.shopify.com/s/files/1/0174/1800/products/pico-addons-2_1024x1024.jpg?v=1611177905)
 
@@ -48,7 +48,15 @@ code example:
 ```python
 def mute_discord():
 ```
-
+That's an example for one of the buttons:
+```python
+if key_4.is_pressed():
+    key_4.color = (10,0,255)
+    print(4)
+    while key_4.is_pressed():
+        time.sleep(0.1)
+    key_4.color = (1, 0, 64)
+```
 ## Features
 General functions
 * mute/unmute Discord and Teams
