@@ -139,7 +139,7 @@ def main(command):
     elif command == 3:
         set_volume_discord_up()
     elif command == 4:
-        set_volume_teams_up
+        set_volume_teams_up()
     elif command == 5:
         pass
     elif command == 6:
