@@ -20,7 +20,7 @@ Inspired by products like the Elgatoo StreamDeck, here is the better and cheaper
 ## General info
 comming soon
 
-
+![pimoroni rgb keypad](https://cdn.shopify.com/s/files/1/0174/1800/products/pico-addons-2_1024x1024.jpg?v=1611177905)
 
 ## Technologies
 ### Hardware
