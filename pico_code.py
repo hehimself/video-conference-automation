@@ -375,89 +375,171 @@ class RGBKeypad():
 # CODE
 #------------------------------------------------------------------
 
+def init_keypad_color():
+    
+
 keypad = RGBKeypad()
 
 keypad.brightness = 0.5
 # make all the keys red
 keypad.color = (10, 10, 10)
 
-key_c = keypad[0, 3]
-key_d = keypad[1, 3]
-key_e = keypad[2, 3]
-key_f = keypad[3, 3]
-key_c_status = True
-key_d_status = True
-key_e_status = True
-key_f_status = True
+key_1 = keypad[0, 0]
+key_2 = keypad[1, 0]
+key_3 = keypad[2, 0]
+key_4 = keypad[3, 0]
+key_5 = keypad[0, 1]
+key_6 = keypad[1, 1]
+key_7 = keypad[2, 1]
+key_8 = keypad[3, 1]
+key_9 = keypad[0, 2]
+key_10 = keypad[1, 2]
+key_11 = keypad[2, 2]
+key_12 = keypad[3, 2]
+key_13 = keypad[0, 3]
+key_14 = keypad[1, 3]
+key_15 = keypad[2, 3]
+key_16 = keypad[3, 3]
+key_9_status = True
+key_13_status = True
+key_14_status = True
+key_15_status = True
+key_16_status = True
 
 
 # turn a key blue when pressed
 while True:
     for key in keypad.keys:
-        #key_c
-        if key_c.is_pressed():
-            if key_c_status:
-                key_c.color = (0, 255, 0)
-                print(13)
-                key_c_status = not key_c_status
-                while key_c.is_pressed():
-                    time.sleep(0.1)
-            else:
-                key_c.color = (255, 0, 0)
-                print(13)
-                key_c_status = not key_c_status
-                while key_c.is_pressed():
-                    time.sleep(0.1)
-        if key_d.is_pressed():
-            if key_d_status:
-                key_d.color = (0, 255, 0)
-                print(14)
-                key_d_status = not key_d_status
-                while key_d.is_pressed():
-                    time.sleep(0.1)
-            else:
-                key_d.color = (255, 0, 0)
-                print(14)
-                key_d_status = not key_d_status
-                while key_d.is_pressed():
-                    time.sleep(0.1)
-        if key_e.is_pressed():
-            if key_e_status:
-                print(15)
-                key_e.color = (255, 0, 0)
-                key_d.color = (50, 0, 0)
-                key_e_status = not key_e_status
-                while key_e.is_pressed():
-                    time.sleep(0.1)
-            else:
-                key_e.color = (10, 10, 10)
-                print(15)
-                key_e_status = not key_e_status
-                if key_d_status:
-                    key_d.color = (255, 0, 0)
-                else:
-                    key_d.color = (0, 255, 0)
-                while key_e.is_pressed():
-                    time.sleep(0.1)
-        if key_f.is_pressed():
-            if key_c_status and key_d_status:
-                pass
-            elif key_c_status == True and key_d_status == False:
-                #mute teams unmute discord
-                print(16)
-                key_c.color = (0, 255, 0)
-                key_c_status = False
-                key_d.color = (255, 0, 0)
-                key_d_status = True
-            elif key_c_status == False and key_d_status == True:
-                #mute teams unmute discord
-                print(16)
-                key_c.color = (255, 0, 0)
-                key_c_status = True
-                key_d.color = (0, 255, 0)
-                key_d_status = False
-            while key_f.is_pressed():
-                key_f.color = (0, 0, 50)
+        if key_1.is_pressed():
+            keypad.clear()
+        if key_2.is_pressed():
+            print(2)
+            for i in range(100, 255):
+                key_2.color = (i, i, 0)
+                time.sleep(0.001)
+                if i == 140 or i == 175 or i == 210:
+                    print(2)
+                if key_2.is_pressed() == False:
+                    key_2.color = (10, 10, 0)
+                    break
+        if key_3.is_pressed():
+            key_3.color = (25,0,255)
+            print(3)
+            while key_3.is_pressed():
                 time.sleep(0.1)
-            key_f.color = (10, 10, 10)
+            key_3.color = (10, 0, 64)
+        if key_4.is_pressed():
+            key_4.color = (10,0,255)
+            print(4)
+            while key_4.is_pressed():
+                time.sleep(0.1)
+            key_4.color = (1, 0, 64)
+        if key_5.is_pressed():
+            pass
+        if key_6.is_pressed():
+            print(6)
+            for i in range(100, 255):
+                key_6.color = (i, i, 0)
+                time.sleep(0.001)
+                if i == 140 or i == 175 or i == 210:
+                    print(6)
+                if key_6.is_pressed() == False:
+                    key_6.color = (10, 10, 0)
+                    break
+        if key_7.is_pressed():
+            key_7.color = (25,0,255)
+            print(7)
+            while key_7.is_pressed():
+                time.sleep(0.1)
+            key_7.color = (10, 0, 64)
+        if key_8.is_pressed():
+            key_8.color = (10,0,255)
+            print(8)
+            while key_8.is_pressed():
+                time.sleep(0.1)
+            key_8.color = (1, 0, 64)
+        if key_9.is_pressed():
+            if key_9_status:
+                key_9.color = (255, 100, 0)
+                print(9)
+                key_9_status = not key_9_status
+                while key_9.is_pressed():
+                    time.sleep(0.1)
+            else:
+                key_9.color = (40, 20, 0)
+                print(9)
+                key_9_status = not key_9_status
+                while key_9.is_pressed():
+                    time.sleep(0.1)
+        if key_10.is_pressed():
+            pass
+        if key_11.is_pressed():
+            pass
+        if key_12.is_pressed():
+            pass
+        if key_13.is_pressed():
+            if key_13_status:
+                key_13.color = (0, 255, 0)
+                print(13)
+                key_13_status = not key_13_status
+                while key_13.is_pressed():
+                    time.sleep(0.1)
+            else:
+                key_13.color = (255, 0, 0)
+                print(13)
+                key_13_status = not key_13_status
+                while key_13.is_pressed():
+                    time.sleep(0.1)
+        if key_14.is_pressed():
+            if key_14_status:
+                key_14.color = (0, 255, 0)
+                print(14)
+                key_14_status = not key_14_status
+                while key_14.is_pressed():
+                    time.sleep(0.1)
+            else:
+                key_14.color = (255, 0, 0)
+                print(14)
+                key_14_status = not key_14_status
+                while key_14.is_pressed():
+                    time.sleep(0.1)
+        if key_15.is_pressed():
+            if key_15_status:
+                print(15)
+                key_15.color = (255, 0, 0)
+                key_14.color = (50, 0, 0)
+                key_15_status = not key_15_status
+                while key_15.is_pressed():
+                    time.sleep(0.1)
+            else:
+                key_15.color = (10, 10, 10)
+                print(15)
+                key_15_status = not key_15_status
+                if key_14_status:
+                    key_14.color = (255, 0, 0)
+                else:
+                    key_14.color = (0, 255, 0)
+                while key_15.is_pressed():
+                    time.sleep(0.1)
+        if key_16.is_pressed():
+            if key_13_status and key_14_status:
+                pass
+            elif key_13_status == True and key_14_status == False:
+                #mute teams unmute discord
+                print(16)
+                key_13.color = (0, 255, 0)
+                key_13_status = False
+                key_14.color = (255, 0, 0)
+                key_14_status = True
+            elif key_13_status == False and key_14_status == True:
+                #mute teams unmute discord
+                print(16)
+                key_13.color = (255, 0, 0)
+                key_13_status = True
+                key_14.color = (0, 255, 0)
+                key_14_status = False
+            while key_16.is_pressed():
+                key_16.color = (0, 0, 50)
+                time.sleep(0.1)
+            key_16.color = (10, 10, 10)
         
