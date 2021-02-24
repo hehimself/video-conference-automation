@@ -44,7 +44,7 @@ Run the `script.py` on your PC.
 Show examples of usage:
 `def mute_discord():`
 
-realsy code example:
+code example:
 ```python
 def mute_discord():
 ```

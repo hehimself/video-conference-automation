@@ -482,17 +482,17 @@ while True:
             while key_10.is_pressed():
                 key_10.color = (255, 0, 0)
                 time.sleep(0.1)
-            key_10.color = (0, 0, 0)
+            key_10.color = (10,10, 10)
         if key_11.is_pressed():
             while key_11.is_pressed():
                 key_11.color = (255, 0, 0)
                 time.sleep(0.1)
-            key_11.color = (0, 0, 0)
+            key_11.color = (10, 10, 10)
         if key_12.is_pressed():
             while key_12.is_pressed():
                 key_12.color = (255, 0, 0)
                 time.sleep(0.1)
-            key_12.color = (0, 0, 0)
+            key_12.color = (10, 10, 10)
         if key_13.is_pressed():
             if key_13_status:
                 key_13.color = (0, 255, 0)
