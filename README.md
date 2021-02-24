@@ -30,6 +30,7 @@ Add more general information about project. What the purpose of the project is? 
 * [PyAutoGUI](https://pyautogui.readthedocs.io/en/latest/) - used for hotkeys and screen analysis
 * [pywinauto](https://pywinauto.readthedocs.io/en/latest/contents.html) - used to solve the active-window-problem
 * [pycaw](https://github.com/AndreMiras/pycaw)  - used to control the volume
+* [pico-rgbkeypad](https://github.com/martinohanlon/pico-rgbkeypad) - used to control the Pimoroni RGB keypad base. Special Thanks to @martinohanlon 
 
 ## Setup
 To run the scirpt on your computer
