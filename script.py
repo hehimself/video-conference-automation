@@ -132,9 +132,31 @@ def get_serial():
     return decoded_bytes
 
 def main(command):
-    if command == 9:
+    if command == 1:
+        pass
+    elif command == 2:
+        volume_up()
+    elif command == 3:
+        set_volume_discord_up()
+    elif command == 4:
+        set_volume_teams_up
+    elif command == 5:
+        pass
+    elif command == 6:
+        volume_down()
+    elif command == 7:
+        set_volume_discord_down()
+    elif command == 8:
+        set_volume_teams_down()
+    elif command == 9:
         app_teams_dialog.set_focus()
         teams_raise_hand()
+    elif command == 10:
+        pass
+    elif command == 11:
+        pass
+    elif command == 12:
+        pass
     elif command == 13:
         app_teams_dialog.set_focus()
         mute_ms_teams()
@@ -145,17 +167,18 @@ def main(command):
         app_discord_dialog.set_focus()
         noSound_discord()
     elif command == 16:
-        pass 
+        app_teams_dialog.set_focus()
+        mute_ms_teams()
+        app_discord_dialog.set_focus()
+        mute_discord()
     else:
         print("falscher command")   
 
 try:
+    print("Programm gestartet")
     while True:
         command = get_serial()
-        print(command)
         main(command)
-    # main()
-    #set_volume_teams_up()
 except Exception as execption:
     s.close()
     print(execption)
