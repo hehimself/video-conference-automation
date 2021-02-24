@@ -9,6 +9,11 @@ import time
 from time import sleep
 from datetime import datetime
 
+try:
+    s = serial.Serial('COM6')
+except serial.serialutil.SerialException:
+    exit("Serieller Port nicht angeschlossen")
+
 def open_ms_teams():
     os.startfile("C:/Users/marvin/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Microsoft Teams")
     #Teams
@@ -94,6 +99,11 @@ def set_volume_teams_up():
                 volume_up_rate = 1
             volume.SetMasterVolume(volume_up_rate, None)
 
+def get_serial():
+    serial_message = s.readline()
+    decoded_bytes = float(serial_message[0:len(serial_message)-2].decode("utf-8"))
+    return decoded_bytes
+
 def main():
     app_teams = application.Application()
     app_teams_title = "Teams"
@@ -120,19 +130,23 @@ def main():
         print("There are to many %s windows found" % app_discord_title)
 
     #kurzer Test
-    app_teams_dialog.set_focus()
-    pyautogui.hotkey('ctrl', '1')
-    time.sleep(2)
-    pyautogui.hotkey('ctrl', '2')
-    app_discord_dialog.set_focus()
-    noSound_discord()
-    time.sleep(2)
-    noSound_discord()
-    app_teams_dialog.set_focus()
+    # app_teams_dialog.set_focus()
+    # pyautogui.hotkey('ctrl', '1')
+    # time.sleep(2)
+    # pyautogui.hotkey('ctrl', '2')
+    # app_discord_dialog.set_focus()
+    # noSound_discord()
+    # time.sleep(2)
+    # noSound_discord()
+    # app_teams_dialog.set_focus()
         
 
 try:
+    while True:
+        befehl = get_serial()
+        print(befehl)
     # main()
-    set_volume_teams_up()
+    #set_volume_teams_up()
 except Exception as execption:
+    s.close()
     print(execption)

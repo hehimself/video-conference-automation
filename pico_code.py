@@ -377,6 +377,7 @@ class RGBKeypad():
 
 keypad = RGBKeypad()
 
+keypad.brightness = 0.5
 # make all the keys red
 keypad.color = (10, 10, 10)
 
@@ -389,6 +390,7 @@ key_d_status = True
 key_e_status = True
 key_f_status = True
 
+
 # turn a key blue when pressed
 while True:
     for key in keypad.keys:
@@ -396,31 +398,32 @@ while True:
         if key_c.is_pressed():
             if key_c_status:
                 key_c.color = (0, 255, 0)
-                print("Mikro T an")
+                print(13)
                 key_c_status = not key_c_status
                 while key_c.is_pressed():
                     time.sleep(0.1)
             else:
                 key_c.color = (255, 0, 0)
-                print("Mikro T aus")
+                print(13)
                 key_c_status = not key_c_status
                 while key_c.is_pressed():
                     time.sleep(0.1)
         if key_d.is_pressed():
             if key_d_status:
                 key_d.color = (0, 255, 0)
-                print("Mikro D an")
+                print(14)
                 key_d_status = not key_d_status
                 while key_d.is_pressed():
                     time.sleep(0.1)
             else:
                 key_d.color = (255, 0, 0)
-                print("Mikro D aus")
+                print(14)
                 key_d_status = not key_d_status
                 while key_d.is_pressed():
                     time.sleep(0.1)
         if key_e.is_pressed():
             if key_e_status:
+                print(15)
                 key_e.color = (255, 0, 0)
                 key_d.color = (50, 0, 0)
                 key_e_status = not key_e_status
@@ -428,7 +431,7 @@ while True:
                     time.sleep(0.1)
             else:
                 key_e.color = (10, 10, 10)
-                print("sound of aus")
+                print(15)
                 key_e_status = not key_e_status
                 if key_d_status:
                     key_d.color = (255, 0, 0)
@@ -441,12 +444,14 @@ while True:
                 pass
             elif key_c_status == True and key_d_status == False:
                 #mute teams unmute discord
+                print(16)
                 key_c.color = (0, 255, 0)
                 key_c_status = False
                 key_d.color = (255, 0, 0)
                 key_d_status = True
             elif key_c_status == False and key_d_status == True:
                 #mute teams unmute discord
+                print(16)
                 key_c.color = (255, 0, 0)
                 key_c_status = True
                 key_d.color = (0, 255, 0)
@@ -456,36 +461,3 @@ while True:
                 time.sleep(0.1)
             key_f.color = (10, 10, 10)
         
-                
-
-#             print("pressed")
-#             key_c.color = (0, 255, 0)
-#             
-#             key_c.color = (0, 0, 255)
-        # if key.is_pressed():
-        #     key.color = (0, 0, 255)
-#             
-#---------------------------------------------  
-# keypad = RGBKeypad()
-# 
-# while True:
-#     for key in keypad.keys:
-#         if key.is_pressed():
-#             print("key", key.x, key.y, "pressed")
-#---------------------------------------------              
-# from random import randint
-# 
-# keypad = RGBKeypad()
-# 
-# while True:
-#     for x in range(4):
-#         for y in range(4):
-#             key = keypad[x,y]
-#             if key.is_pressed():
-#                 
-#                 key.color = (
-#                     randint(0,255),
-#                     randint(0,255),
-#                     randint(0,255)
-#                     )
-#                 print("key", x, y, "pressed")            

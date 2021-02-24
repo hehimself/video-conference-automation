@@ -10,7 +10,7 @@ try:
         serial_message = s.readline()
         decoded_bytes = float(serial_message[0:len(serial_message)-2].decode("utf-8"))
         print(decoded_bytes)
-        if decoded_bytes > 21:
+        if decoded_bytes > 15:
             print("Hot")
 except KeyboardInterrupt:
     s.close()
