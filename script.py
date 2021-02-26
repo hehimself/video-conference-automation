@@ -15,12 +15,11 @@ except serial.serialutil.SerialException:
     exit("Serieller Port nicht angeschlossen")
 
 app_teams = application.Application()
-app_teams_title = "Teams"
+app_teams_title = "Besprechung in „Technik (Dr)“"
 app_discord = application.Application()
-app_discord_title = "Discord"
+app_discord_title = "#Allgemein - Discord"
 try:
-    app_teams.connect(title_re=app_teams_title)
-    
+    app_teams.connect(title_re="Teams")
     #Acces app_teams's window object
     app_teams_dialog = app_teams.window()
 except(WindowNotFoundError):
