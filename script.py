@@ -2,6 +2,8 @@ import os
 import serial
 import pyautogui
 import pywinauto
+import playsound
+from threading import Thread
 from pywinauto import application
 from pywinauto.findwindows import WindowAmbiguousError, WindowNotFoundError
 from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
@@ -53,7 +55,6 @@ def open_discord():
     server = pyautogui.locateCenterOnScreen("images/discord_gruppe.PNG")
     pyautogui.moveTo(server)
     pyautogui.click()
-    pyautogui.hotkey('ctrl', 'shift', 'm')
     #select Channel
     kanal = pyautogui.locateCenterOnScreen("images/allgemein_kanal.PNG")
     pyautogui.moveTo(kanal)
@@ -125,6 +126,9 @@ def set_volume_teams_up():
                 volume_up_rate = 1
             volume.SetMasterVolume(volume_up_rate, None)
 
+def sound():
+    playsound.playsound("jarvis.mp3")
+
 def get_serial():
     serial_message = s.readline()
     decoded_bytes = float(serial_message[0:len(serial_message)-2].decode("utf-8"))
@@ -132,7 +136,8 @@ def get_serial():
 
 def main(command):
     if command == 1:
-        pass
+        T = Thread(target=sound) # create thread
+        T.start()
     elif command == 2:
         volume_up()
     elif command == 3:
@@ -174,10 +179,10 @@ def main(command):
         print("falscher command")   
 
 try:
-    print("Programm gestartet")
+    print("Programm start")
     while True:
         command = get_serial()
         main(command)
-except Exception as execption:
+except KeyboardInterrupt:
     s.close()
-    print(execption)
+    exit("Programm ended")

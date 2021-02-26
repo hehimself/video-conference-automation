@@ -15,6 +15,8 @@ except ImportError:
 if not MICROPYTHON and not CIRCUITPYTHON:
     raise Exception("Could not find MicroPython or CircuitPython.")
 
+import math
+
 class RGBKeypad():
     
     KEYPAD_ADDRESS = 32
@@ -374,8 +376,29 @@ class RGBKeypad():
 #------------------------------------------------------------------
 # CODE
 #------------------------------------------------------------------
+spacing = 360.0 / 4.0          #360.0 / 16.0
+hue = 0
+
+def hsv_to_rgb(h, s, v):
+    i = math.floor(h*6)
+    f = h*6 - i
+    p = v * (1-s)
+    q = v * (1-f*s)
+    t = v * (1-(1-f)*s)
+
+    r, g, b = [
+        (v, t, p),
+        (q, v, p),
+        (p, v, t),
+        (p, q, v),
+        (t, p, v),
+        (v, p, q),
+    ][int(i%6)]
+    return r, g, b
+#------------------------------------------------------------------
 
 def init_keypad_color():
+    keypad.color = (10, 10, 10)
     key_2.color = (10, 10, 0)
     key_6.color = (10, 10, 0)
     key_3.color = (10, 0, 64)
@@ -388,7 +411,7 @@ keypad = RGBKeypad()
 
 keypad.brightness = 0.5
 # make all the keys red
-keypad.color = (10, 10, 10)
+
 
 key_1 = keypad[0, 0]
 key_2 = keypad[1, 0]
@@ -414,11 +437,27 @@ key_16_status = True
 
 init_keypad_color()
 
+
 # turn a key blue when pressed
 while True:
     for key in keypad.keys:
         if key_1.is_pressed():
-            keypad.clear()
+            print(1)
+            i = 0
+            while i < 50:
+                x=1
+                for x in range(4):
+                    for y in range(4):
+                        hue = int(time.time() * 100) % 360
+                        offset = (x * y) / 25.0 * spacing
+                        h = ((hue + offset) % 360) / 360.0
+                        r, g, b = [int(c * 255) for c in hsv_to_rgb(h, 1.0, 1.0)]
+                        key_animation = keypad[x,y]
+                        key_animation.color = (r,g,b)
+                i = i+1
+                time.sleep(0.0001)
+            init_keypad_color()
+
         if key_2.is_pressed():
             print(2)
             for i in range(100, 255):
@@ -560,3 +599,4 @@ while True:
             key_16.color = (10, 10, 10)
         
         
+
