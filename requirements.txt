@@ -3,3 +3,4 @@ pywinauto
 pycaw
 time
 playsound
+termcolor

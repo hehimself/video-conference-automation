@@ -1,14 +1,14 @@
 import os
+import time
 import serial
 import pyautogui
-import pywinauto
 import playsound
+import pywinauto
 from threading import Thread
+from termcolor import colored
 from pywinauto import application
 from pywinauto.findwindows import WindowAmbiguousError, WindowNotFoundError
 from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
-import time
-from time import sleep
 from datetime import datetime
 
 try:
@@ -16,10 +16,9 @@ try:
 except serial.serialutil.SerialException:
     exit("Serieller Port nicht angeschlossen")
 
+
 app_teams = application.Application()
 app_teams_title = "Besprechung in „Technik (Dr)“"
-app_discord = application.Application()
-app_discord_title = "#Allgemein - Discord"
 try:
     app_teams.connect(title_re="Teams")
     #Acces app_teams's window object
@@ -29,6 +28,9 @@ except(WindowNotFoundError):
 except(WindowAmbiguousError):
     print("There are to many %s windows found" % app_teams_title)
 
+
+app_discord = application.Application()
+app_discord_title = "#Allgemein - Discord"
 try:
     app_discord.connect(title_re=app_discord_title)
 
@@ -42,15 +44,15 @@ except(WindowAmbiguousError):
 def open_ms_teams():
     os.startfile("C:/Users/marvin/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Microsoft Teams")
     #Teams
-    sleep(3)
+    time.sleep(3)
     teams = pyautogui.locateCenterOnScreen("images/teams_button.PNG")
     pyautogui.moveTo(teams)
     pyautogui.click()
-    sleep(1)
+    time.sleep(1)
 
 def open_discord():
     os.startfile("C:/Users/marvin/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Discord Inc/Discord")
-    sleep(4)
+    time.sleep(4)
     #search Discord-Server
     server = pyautogui.locateCenterOnScreen("images/discord_gruppe.PNG")
     pyautogui.moveTo(server)
@@ -130,8 +132,16 @@ def sound():
     playsound.playsound("jarvis_funny.mp3")
 
 def get_serial():
-    serial_message = s.readline()
-    decoded_bytes = float(serial_message[0:len(serial_message)-2].decode("utf-8"))
+    try:
+        serial_message = s.readline()
+    except KeyboardInterrupt:
+        exit(colored("programm ended", "red"))
+    except serial.SerialException:
+        print("Serial Exception")
+    try:
+        decoded_bytes = float(serial_message[0:len(serial_message)-2].decode("utf-8"))
+    except:
+        exit("Serial Error")
     return decoded_bytes
 
 def main(command):
@@ -182,10 +192,12 @@ def main(command):
         print("falscher command")   
 
 try:
-    print("Programm start")
+    print(colored("VIDEO CONFERENCE AUTOMATION", "green", attrs=['bold']))
     while True:
         command = get_serial()
         main(command)
 except KeyboardInterrupt:
     s.close()
-    exit("Programm ended")
+    exit(colored("programm ended", "red"))
+except pywinauto.findwindows.ElementNotFoundError:
+    exit(colored("Error - ElementNotFoundError", "red"))
