@@ -127,7 +127,7 @@ def set_volume_teams_up():
             volume.SetMasterVolume(volume_up_rate, None)
 
 def sound():
-    playsound.playsound("jarvis.mp3")
+    playsound.playsound("jarvis_funny.mp3")
 
 def get_serial():
     serial_message = s.readline()
@@ -138,6 +138,9 @@ def main(command):
     if command == 1:
         T = Thread(target=sound) # create thread
         T.start()
+        time.sleep(4)
+        app_teams_dialog.set_focus()
+        app_discord_dialog.set_focus()
     elif command == 2:
         volume_up()
     elif command == 3:
