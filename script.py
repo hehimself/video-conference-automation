@@ -209,7 +209,6 @@ def main(command):
         print("falscher command")   
 
 try:
-    print("Programm gestartet")
     print(colored("VIDEO CONFERENCE AUTOMATION", "green", attrs=['bold']))
     while True:
         command = get_serial()
