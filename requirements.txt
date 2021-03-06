@@ -4,3 +4,4 @@ pycaw
 time
 playsound
 termcolor
+colorama

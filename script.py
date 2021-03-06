@@ -1,6 +1,7 @@
 import os
 import time
 import serial
+import colorama
 import pyautogui
 import playsound
 import pywinauto
@@ -10,6 +11,8 @@ from pywinauto import application
 from pywinauto.findwindows import WindowAmbiguousError, WindowNotFoundError, ElementNotFoundError
 from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
 from datetime import datetime
+
+colorama.init()
 
 try:
     s = serial.Serial('COM6')
@@ -206,6 +209,7 @@ def main(command):
         print("falscher command")   
 
 try:
+    print("Programm gestartet")
     print(colored("VIDEO CONFERENCE AUTOMATION", "green", attrs=['bold']))
     while True:
         command = get_serial()
