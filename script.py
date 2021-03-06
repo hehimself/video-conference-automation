@@ -7,7 +7,7 @@ import pywinauto
 from threading import Thread
 from termcolor import colored
 from pywinauto import application
-from pywinauto.findwindows import WindowAmbiguousError, WindowNotFoundError
+from pywinauto.findwindows import WindowAmbiguousError, WindowNotFoundError, ElementNotFoundError
 from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
 from datetime import datetime
 
@@ -17,34 +17,10 @@ except serial.serialutil.SerialException:
     exit("Serieller Port nicht angeschlossen")
 
 
-app_teams = application.Application()
-app_teams_title = "Besprechung in „Technik (Dr)“"
-try:
-    app_teams.connect(title_re="Teams")
-    #Acces app_teams's window object
-    app_teams_dialog = app_teams.window()
-except(WindowNotFoundError):
-    print("Window: %s not Found" % app_teams_title)
-except(WindowAmbiguousError):
-    print("There are to many %s windows found" % app_teams_title)
-
-
-app_discord = application.Application()
-app_discord_title = "#Allgemein - Discord"
-try:
-    app_discord.connect(title_re=app_discord_title)
-
-    # Access app's window object
-    app_discord_dialog = app_discord.window()
-except(WindowNotFoundError):
-    print("Window: %s not Found" % app_discord_title)
-except(WindowAmbiguousError):
-    print("There are to many %s windows found" % app_discord_title)
-
 def open_ms_teams():
     os.startfile("C:/Users/marvin/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Microsoft Teams")
     #Teams
-    time.sleep(3)
+    time.sleep(4)
     teams = pyautogui.locateCenterOnScreen("images/teams_button.PNG")
     pyautogui.moveTo(teams)
     pyautogui.click()
@@ -143,6 +119,44 @@ def get_serial():
     except:
         exit("Serial Error")
     return decoded_bytes
+
+app_teams = application.Application()
+app_teams_title = "Besprechung in „Technik (Dr)“"
+for attempts in range(2):
+    try:
+        app_teams.connect(title_re="Teams")
+        #Acces app_teams's window object
+        app_teams_dialog = app_teams.window()
+    except(WindowNotFoundError):
+        print("Window: %s not Found" % app_teams_title)
+    except(WindowAmbiguousError):
+        print("There are to many %s windows found" % app_teams_title)
+    except(ElementNotFoundError):
+        open_ms_teams()
+    else:
+        break
+else:
+    raise ElementNotFoundError
+
+
+app_discord = application.Application()
+app_discord_title = "#Allgemein - Discord"
+for attempts in range(2):
+    try:
+        app_discord.connect(title_re=app_discord_title)
+
+        # Access app's window object
+        app_discord_dialog = app_discord.window()
+    except(WindowNotFoundError):
+        print("Window: %s not Found" % app_discord_title)
+    except(WindowAmbiguousError):
+        print("There are to many %s windows found" % app_discord_title)
+    except(ElementNotFoundError):
+        open_discord()
+    else:
+        break
+else:
+    raise ElementNotFoundError
 
 def main(command):
     if command == 1:
