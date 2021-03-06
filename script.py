@@ -20,7 +20,7 @@ except serial.serialutil.SerialException:
 def open_ms_teams():
     os.startfile("C:/Users/marvin/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Microsoft Teams")
     #Teams
-    time.sleep(4)
+    time.sleep(10)
     teams = pyautogui.locateCenterOnScreen("images/teams_button.PNG")
     pyautogui.moveTo(teams)
     pyautogui.click()
@@ -28,7 +28,7 @@ def open_ms_teams():
 
 def open_discord():
     os.startfile("C:/Users/marvin/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Discord Inc/Discord")
-    time.sleep(4)
+    time.sleep(10)
     #search Discord-Server
     server = pyautogui.locateCenterOnScreen("images/discord_gruppe.PNG")
     pyautogui.moveTo(server)
