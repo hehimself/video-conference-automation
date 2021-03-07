@@ -2,6 +2,7 @@ pyautogui
 pywinauto
 pycaw
 time
+configparser
 playsound
 termcolor
 colorama
