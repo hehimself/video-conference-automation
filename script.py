@@ -192,8 +192,8 @@ def main(command):
         app_teams_dialog.set_focus()
         teams_raise_hand()
     elif command == 10:
-        downloads_directory = "C:/Users/marvin/Downloads/*.zip"
-        directory_to_extract_to = "C:/Users/marvin/Documents/Schule/Schuljahr 2019-2020"
+        downloads_directory = config['FILE_MANAGEMENT']['DOWNLOADS_DIRECTORY']
+        directory_to_extract_to = config['FILE_MANAGEMENT']['DIRECTORY_TO_EXTRACT_TO']
         teams_downloads_function(downloads_directory, directory_to_extract_to)
     elif command == 11:
         pass
