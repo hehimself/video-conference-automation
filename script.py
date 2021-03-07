@@ -8,7 +8,7 @@ import pywinauto
 from threading import Thread
 from termcolor import colored
 from pywinauto import application
-from filemanagement import teams_downloads_function
+from filemanagement import teams_downloads_function     #own zip file function
 from pywinauto.findwindows import WindowAmbiguousError, WindowNotFoundError, ElementNotFoundError
 from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
 from datetime import datetime
@@ -187,7 +187,9 @@ def main(command):
         app_teams_dialog.set_focus()
         teams_raise_hand()
     elif command == 10:
-        pass
+        downloads_directory = "C:/Users/marvin/Downloads/*.zip"
+        directory_to_extract_to = "C:/Users/marvin/Documents/Schule/Schuljahr 2019-2020"
+        teams_downloads_function(downloads_directory, directory_to_extract_to)
     elif command == 11:
         pass
     elif command == 12:
