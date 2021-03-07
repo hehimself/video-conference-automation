@@ -57,6 +57,12 @@ if key_4.is_pressed():
         time.sleep(0.1)
     key_4.color = (1, 0, 64)
 ```
+### The filemanagement function:
+When you download the files and tasks in Teams, they are automaticly Downloaded to  `/Downloads`. With this function, the latest .zip File is picked and unziped and moved to the "School" directory.
+```python
+def teams_downloads_function(downloads_directory, directory_to_extract_to)
+```
+
 ## Features
 General functions
 * mute/unmute Discord and Teams

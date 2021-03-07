@@ -5,3 +5,5 @@ time
 playsound
 termcolor
 colorama
+glob
+zipfile
