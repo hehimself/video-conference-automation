@@ -5,6 +5,7 @@ import colorama
 import pyautogui
 import playsound
 import pywinauto
+import configparser
 from threading import Thread
 from termcolor import colored
 from pywinauto import application
@@ -14,15 +15,19 @@ from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
 from datetime import datetime
 
 colorama.init()
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 try:
-    s = serial.Serial('COM6')
+    s = serial.Serial(config['SERIAL']['PORT'])
 except serial.serialutil.SerialException:
     exit("Serieller Port nicht angeschlossen")
+except configparser.Error:
+    exit("Fehle")
 
 
 def open_ms_teams():
-    os.startfile("C:/Users/marvin/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Microsoft Teams")
+    os.startfile(config['CONSTANTS']['TEAMS_PATH'])
     #Teams
     time.sleep(10)
     teams = pyautogui.locateCenterOnScreen("images/teams_button.PNG")
@@ -31,7 +36,7 @@ def open_ms_teams():
     time.sleep(1)
 
 def open_discord():
-    os.startfile("C:/Users/marvin/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/Discord Inc/Discord")
+    os.startfile(config['CONSTANTS']['DISCORD_PATH'])
     time.sleep(10)
     #search Discord-Server
     server = pyautogui.locateCenterOnScreen("images/discord_gruppe.PNG")

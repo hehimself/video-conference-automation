@@ -39,16 +39,15 @@ $ pip install -r requirements.txt
 ```
 Run the `pico-code.py` on your Pico.
 Run the `script.py` on your PC.
-
 ## Code Examples
-Show examples of usage:
+There are several functions. For example:
 `def mute_discord():`
 
-code example:
+Example:
 ```python
 def mute_discord():
 ```
-That's an example for one of the buttons:
+That's an example for one of the buttons (Pico):
 ```python
 if key_4.is_pressed():
     key_4.color = (10,0,255)
@@ -62,7 +61,7 @@ When you download the files and tasks in Teams, they are automaticly Downloaded 
 ```python
 def teams_downloads_function(downloads_directory, directory_to_extract_to)
 ```
-
+This can be activated with Button 10.
 ## Features
 General functions
 * mute/unmute Discord and Teams
