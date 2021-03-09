@@ -18,16 +18,14 @@ colorama.init()
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-s = serial.Serial('COM6')
-
-# try:
-#     PORT = config['SERIAL']['PORT']
-#     print(PORT)
-#     s = serial.Serial('COM6')
-# except serial.serialutil.SerialException:
-#     exit("Serieller Port nicht angeschlossen")
-# except configparser.Error:
-#     exit("Fehle")
+try:
+    PORT = config['SERIAL']['PORT']
+    print(PORT)
+    s = serial.Serial('COM6')
+except serial.serialutil.SerialException:
+    exit("Serieller Port nicht angeschlossen")
+except configparser.Error:
+    exit("Fehle")
 
 
 def open_ms_teams():
