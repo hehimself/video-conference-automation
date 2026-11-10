@@ -1,5 +1,7 @@
 # Keypad Studio
 
+![Original video conference automation project](images/header.png)
+
 A visual Mac and Windows editor for the **Raspberry Pi Pico + Pimoroni RGB Keypad Base**.
 Click a virtual key, choose actions and lighting, and save the active profile to the Pico.
 
