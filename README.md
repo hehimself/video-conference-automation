@@ -1,85 +1,118 @@
-# video conference automation
-![video conference automation](/images/header.png)
+# Keypad Studio
 
-[![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
-[![Generic badge](https://img.shields.io/badge/Made%20with-MicroPython-1f425f.svg)](http://docs.micropython.org/en/latest/)
-[![Generic badge](https://img.shields.io/badge/Status-in%20progress-orange.svg)]()
-[![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/hehimself/video-conference-automation/blob/main/LICENSE)
+A visual Mac and Windows editor for the **Raspberry Pi Pico + Pimoroni RGB Keypad Base**.
+Click a virtual key, choose actions and lighting, and save the active profile to the Pico.
 
-> You know that... your sitting in your MS Teams class but would much rather talk to your friends or classmates over Discord. Thats just one example where this automation tool with the Raspberry Pico and the Pimoroni RGB Keypad could be helpfull.
+![Keypad Studio in light mode with a connected Pico, visual key mapping, and the action editor](images/keypad-studio.jpg)
 
-Inspired by products like the Elgatoo StreamDeck, here is the better and cheaper solution.
+## Use it
 
-## Table of contents
-* [General info](#general-info)
-* [Technologies](#technologies)
-* [Setup](#setup)
-* [Features](#features)
-* [Contact](#contact)
+1. Open **Keypad Studio**. The editor works without a connected device.
+2. Select **Current Pico** or **Classic Conference**, or create a new profile.
+3. Choose the target OS and keyboard layout. German Mac and Windows are distinct.
+4. Click a virtual key to edit its action, sequence, timing and lighting. Drag keys to
+   swap assignments; Copy/Paste and Undo are available. Click a sequence step and
+   Edit to configure it without writing JSON.
+5. Use **Computer Settings** to select scripts, interpreters, sound files and app paths.
+6. Preview lighting locally or on the connected Pico. Preview never saves flash or
+   triggers physical key actions.
+7. **Save locally** keeps the profile in your computer's library. **Save to Pico**
+   replaces only its active profile, verifies it by reading it back, and persists it
+   across unplugging.
 
-## General info
-The Pico has a serial connection to the PC over USB. The Pico sends the pushed buttons as numbers to the PC and the `script.py` than taked the action. 
+Keyboard shortcuts, media controls, text, keyboard macros and lighting work with the
+app fully quit. Scripts, app launch/focus, URLs and computer-side sequences require
+the background companion. Closing the window keeps the menu-bar/tray companion
+running. Choose **Quit** in its menu to stop it. Launch the app at login using the
+operating system's Login Items / Startup Apps if desired.
 
-![pimoroni rgb keypad](https://cdn.shopify.com/s/files/1/0174/1800/products/pico-addons-2_1024x1024.jpg?v=1611177905)
+**Set up Pico** provides backup, CircuitPython upgrade and firmware installation
+steps. Normal operation hides the CIRCUITPY drive so only firmware writes its files.
+See [firmware setup and recovery](docs/firmware.md).
 
-## Technologies
-### Hardware
-* [Raspberry Pico](https://www.raspberrypi.org/documentation/pico/getting-started/)
-* [Pimoroni RGB keypad Base](https://shop.pimoroni.com/products/pico-rgb-keypad-base)
-### Libarys
-* [PyAutoGUI](https://pyautogui.readthedocs.io/en/latest/) - used for hotkeys and screen analysis
-* [pywinauto](https://pywinauto.readthedocs.io/en/latest/contents.html) - used to solve the active-window-problem
-* [pycaw](https://github.com/AndreMiras/pycaw)  - used to control the volume
-* [pico-rgbkeypad](https://github.com/martinohanlon/pico-rgbkeypad) - used to control the Pimoroni RGB keypad base from [@martinohanlon](https://github.com/martinohanlon/pico-rgbkeypad)
+## Appearance
 
-## Setup
-install the requirements with:
+Use the top-right selector for **Dark gray**, **Light**, or **Follow system**. Your
+choice stays on this computer and does not change any Pico lighting values. Both
+themes use neutral surfaces from the [shadcn v3 palette](https://v3.shadcn.com/colors),
+with readable text, visible focus indicators and muted dark-mode accents, informed
+by the [UX Design Institute guide](https://www.uxdesigninstitute.com/blog/dark-mode-design-practical-guide/).
+
+<details>
+<summary>Compare light and dark-gray themes</summary>
+
+| Light | Dark gray |
+| --- | --- |
+| ![Keypad Studio light theme](images/editor-light.png) | ![Keypad Studio dark-gray theme](images/editor-dark.png) |
+
+</details>
+
+## Starter profiles
+
+**Current Pico** reproduces the connected device's shortcuts, media keys, animations,
+and locally tracked toggles, with Mac variants. Script keys use the reliable direct
+runner by default. Choose **Use a legacy script-launch macro** to use standalone
+Windows PowerShell launch sequences instead; edit their text steps to set your path.
+The original text-entry key is intentionally empty until re-entered.
+
+**Classic Conference** preserves the earlier Teams/Discord layout, including the ZIP
+extraction key that the old firmware did not dispatch. Application volume controls
+work on Windows; these bindings are unassigned on macOS. Configure local paths before
+using script, sound, download or app-specific actions.
+
+Shortcut-driven colors track presses, not the actual application mute state. Use
+Learn / diagnostic mode to confirm the physical positions before saving mappings.
+The default view has the Pico at the top: keys 1–4 across the first row, 13–16 across
+the last. The physical corner positions were checked on the connected device.
+
+## Run from source
+
+Python 3.10–3.13 (3.11 recommended):
+
+```sh
+python3 -m venv .venv
+source .venv/bin/activate       # Windows: .venv\Scripts\activate
+python -m pip install -e ".[dev]"
+python -m keypad_studio
 ```
-$ pip install -r requirements.txt
+
+Use `--learn` to start with physical actions suppressed, or `--no-device` for a
+hardware-free editor. Mac computer-side keyboard injection may require Accessibility
+permission; standalone USB keyboard actions do not use that permission.
+
+Settings and profiles normally live in the OS application-data directory. Set
+`KEYPAD_HOME` to choose a different directory. Machine-specific paths are separate
+from exported/device profiles. Only one companion instance runs at a time.
+
+## Build standalone applications
+
+```sh
+python tools/build_firmware.py
+python tools/build_app.py
 ```
-Run the `pico-code.py` on your Pico.
-Run the `script.py` on your PC.
-## Code Examples
-There are several functions. For example:
-`def mute_discord():`
 
-Example:
-```python
-def mute_discord():
+The Mac result is `dist/Keypad Studio.app`; Windows produces
+`dist/Keypad Studio/Keypad Studio.exe`. Build on each target OS. Users do not need
+Python to run these packages. Running their own Python scripts still requires a
+chosen Python interpreter. The included GitHub Actions workflow tests and packages
+Mac and Windows independently. Local builds are unsigned; signing/notarization can
+be added for public distribution using the publisher's credentials.
+
+## Develop and extend
+
+- `keypad_core/`: portable schema, effects, cooperative scheduler, storage and protocol.
+- `keypad_studio/`: editor, local library, USB worker, script runner and OS adapters.
+- `firmware/`: CircuitPython entry points and the small hardware adapter.
+- `tests_v2/`: isolated automated tests; old `tests/` files are historical scripts that
+  can trigger real automation and are deliberately excluded from test discovery.
+- [Profile/action/protocol reference](docs/profile-format.md), including script feedback.
+- [Validation results and remaining platform checks](docs/validation.md).
+- `examples/progress_script.py`: a script that reports progress and a key state.
+
+```sh
+python -m pytest
+python -m black --line-length 100 keypad_core keypad_studio firmware tools tests_v2 examples
 ```
-That's an example for one of the buttons (Pico):
-```python
-if key_4.is_pressed():
-    key_4.color = (10,0,255)
-    print(4)
-    while key_4.is_pressed():
-        time.sleep(0.1)
-    key_4.color = (1, 0, 64)
-```
-### The filemanagement function:
-When you download the files and tasks in Teams, they are automaticly Downloaded to  `/Downloads`. With this function, the latest .zip File is picked and unziped and moved to the "School" directory.
-```python
-def teams_downloads_function(downloads_directory, directory_to_extract_to)
-```
-This can be activated with Button 10.
-## Features
-General functions
-* mute/unmute Discord and Teams
-* the win-focus is always set to the right programm (important for keyboard shortcuts)
-* control the general Volume
-* control the volume of Discord or Teams
 
-special features:
-* "startup" automation
-* "goodby" automation
-* **"switch" automation**
-
-| Automation         	| Description                                                                                                    	|
-|--------------------	|----------------------------------------------------------------------------------------------------------------	|
-| "startup" function 	| just one click and your whole home-schooling/gaming setup is ready, eveything is done for you automatically     	|
-| "goodby" function  	| with just one click you leave the meeting, close Teams, go to Discord and you're ready for gaming.              	|
-| "switch" function  	| you've got asked something by the teacher and have to switch very quickly bewteen Discord and Teams. or around 	|
-
-
-## Contact
-Created by [@hehimself](https://github.com/hehimself) - feel free to contact me!
+The original `script.py`, `pico_code.py`, images and audio remain available for
+reference. Their original documentation is in [the legacy README](docs/legacy-readme.md).
