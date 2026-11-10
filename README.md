@@ -2,10 +2,21 @@
 
 ![Original video conference automation project](images/header.png)
 
+[![Made with Python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/)
+[![Original MicroPython implementation](https://img.shields.io/badge/Made%20with-MicroPython-1f425f.svg)](docs/legacy-readme.md "Original MicroPython implementation")
+[![Development status](https://img.shields.io/badge/Status-in%20progress-orange.svg)](#use-it)
+[![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](LICENSE)
+
 A visual Mac and Windows editor for the **Raspberry Pi Pico + Pimoroni RGB Keypad Base**.
 Click a virtual key, choose actions and lighting, and save the active profile to the Pico.
 
 ![Keypad Studio in light mode with a connected Pico, visual key mapping, and the action editor](images/keypad-studio.jpg)
+
+## Hardware
+
+A Raspberry Pi Pico mounted on the Pimoroni RGB Keypad Base, with 16 illuminated keys.
+
+![Pimoroni RGB Keypad Base with a Raspberry Pi Pico](https://cdn.shopify.com/s/files/1/0174/1800/products/pico-addons-2_1024x1024.jpg?v=1611177905)
 
 ## Use it
 
