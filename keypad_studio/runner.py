@@ -43,6 +43,7 @@ class Runner(QObject):
         self.library = library
         self.device = device
         self.runs = {}
+        self.stopping = False
         self.os_name = "macos" if sys.platform == "darwin" else "windows"
         self.device.event.connect(self.device_event)
 
@@ -60,6 +61,8 @@ class Runner(QObject):
             self.finish(key, run, event.get("error", "Device action failed"))
 
     def start(self, key, action, profile_id="test"):
+        if self.stopping:
+            return
         if key in self.runs:
             self.log.emit("Key %d is already running" % (key + 1))
             return
@@ -84,7 +87,12 @@ class Runner(QObject):
             return
         self.runs.pop(key, None)
         if run.get("process"):
-            run["process"].deleteLater()
+            process = run["process"]
+            if process.state() == QProcess.NotRunning:
+                process.deleteLater()
+            else:
+                process.finished.connect(process.deleteLater)
+                process.kill()
         if run.get("player"):
             run["player"].stop()
             run["player"].deleteLater()
@@ -103,6 +111,16 @@ class Runner(QObject):
             if process:
                 process.kill()
             self.finish(key, run, "Cancelled")
+
+    def shutdown(self):
+        self.stopping = True
+        for key in list(self.runs):
+            self.cancel(key)
+
+    def is_stopped(self):
+        return not self.runs and all(
+            p.state() == QProcess.NotRunning for p in self.findChildren(QProcess)
+        )
 
     def next(self, key, run):
         if self.runs.get(key) is not run:

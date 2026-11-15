@@ -2,6 +2,7 @@
 
 import subprocess
 import sys
+import plistlib
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
@@ -13,22 +14,17 @@ command = [
     "PyInstaller",
     "--noconfirm",
     "--clean",
-    "--windowed",
-    "--onedir",
-    "--name",
-    "Keypad Studio",
-    "--paths",
-    str(root),
-    "--add-data",
-    str(root / "build/firmware-bundle") + ":firmware-bundle",
-    "--hidden-import",
-    "keypad_studio.zip_helper",
-    "--hidden-import",
-    "pyautogui",
+    "--distpath",
+    str(root / "dist"),
+    "--workpath",
+    str(root / "build/pyinstaller"),
+    str(root / "packaging/keypad_studio.spec"),
 ]
-if sys.platform == "darwin":
-    command.extend(["--osx-bundle-identifier", "com.keypadstudio.desktop"])
-else:
-    command.extend(["--hidden-import", "pywinauto", "--hidden-import", "pycaw.pycaw"])
-command.append(str(root / "tools/desktop_entry.py"))
 subprocess.run(command, cwd=root, check=True)
+if sys.platform == "darwin":
+    contents = root / "dist/Keypad Studio.app/Contents"
+    info = plistlib.loads((contents / "Info.plist").read_bytes())
+    bundled_icon = contents / "Resources" / info["CFBundleIconFile"]
+    if bundled_icon.read_bytes() != (root / "keypad_studio/assets/app-icon.icns").read_bytes():
+        raise SystemExit("The app bundle does not contain the correct Finder icon")
+    print("Verified the Finder app icon and bundle metadata")

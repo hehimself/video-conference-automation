@@ -23,6 +23,9 @@ keypad-firmware = "keypad_studio.install:main"
 [tool.setuptools.packages.find]
 include = ["keypad_studio*", "keypad_core*"]
 
+[tool.setuptools.package-data]
+keypad_studio = ["LUCIDE-LICENSE.txt", "assets/*.svg", "assets/*.png", "assets/*.icns", "assets/*.ico"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests_v2"]
 pythonpath = ["."]

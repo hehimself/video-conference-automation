@@ -1,10 +1,9 @@
 import json
-import math
 import time
 import uuid
 from copy import deepcopy
-from PySide6.QtCore import Qt, Signal, QMimeData, QTimer, QPointF, QSize
-from PySide6.QtGui import QColor, QPainter, QPen, QFont, QDrag, QLinearGradient
+from PySide6.QtCore import Qt, Signal, QMimeData, QTimer, QPointF, QRectF, QSize
+from PySide6.QtGui import QColor, QPainter, QPen, QFont, QDrag, QTextLayout, QPixmap, QIcon
 from PySide6.QtWidgets import (
     QWidget,
     QPushButton,
@@ -14,7 +13,6 @@ from PySide6.QtWidgets import (
     QLabel,
     QFormLayout,
     QLineEdit,
-    QComboBox,
     QPlainTextEdit,
     QSpinBox,
     QDoubleSpinBox,
@@ -26,17 +24,64 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QFileDialog,
     QSizePolicy,
+    QStyledItemDelegate,
+    QStyle,
+    QApplication,
 )
 from keypad_core.schema import EFFECTS, MEDIA, effect, independent, validate_action
 from keypad_core.effects import frame
 from keypad_studio.themes import PALETTES
+from keypad_studio.controls import ComboBox as QComboBox
 
 
-def button(text, callback, layout):
+def button(text, callback, layout, icon_name=None, variant=None):
     control = QPushButton(text)
+    if icon_name:
+        control.setProperty("iconName", icon_name)
+    if variant:
+        control.setProperty("variant", variant)
     control.clicked.connect(callback)
     layout.addWidget(control)
     return control
+
+
+class ProfileDelegate(QStyledItemDelegate):
+    """Two-line library rows that keep long profile names inside the sidebar."""
+
+    def sizeHint(self, option, index):
+        return QSize(180, 66)
+
+    def paint(self, painter, option, index):
+        c = PALETTES[QApplication.instance().property("keypadTheme") or "dark"]
+        painter.save()
+        painter.setRenderHint(QPainter.Antialiasing)
+        rect = option.rect.adjusted(0, 2, -1, -2)
+        selected = bool(option.state & QStyle.State_Selected)
+        if selected or option.state & QStyle.State_MouseOver:
+            painter.setPen(Qt.NoPen)
+            painter.setBrush(QColor(c["selected"] if selected else c["hover"]))
+            painter.drawRoundedRect(rect, 8, 8)
+        if option.state & QStyle.State_HasFocus and option.widget.hasFocus():
+            painter.setPen(QPen(QColor(c["focus"]), 1))
+            painter.setBrush(Qt.NoBrush)
+            painter.drawRoundedRect(rect.adjusted(1, 1, -1, -1), 7, 7)
+        if selected:
+            painter.setPen(Qt.NoPen)
+            painter.setBrush(QColor(c["focus"]))
+            painter.drawRoundedRect(QRectF(rect.left(), rect.top() + 17, 3, 28), 1.5, 1.5)
+        font = QFont(option.font)
+        font.setPixelSize(13)
+        font.setWeight(QFont.DemiBold if selected else QFont.Medium)
+        painter.setFont(font)
+        painter.setPen(QColor(c["selected_text"] if selected else c["text"]))
+        title = painter.fontMetrics().elidedText(index.data(), Qt.ElideRight, rect.width() - 24)
+        painter.drawText(rect.adjusted(12, 10, -12, -30), Qt.AlignVCenter, title)
+        font.setPixelSize(11)
+        font.setWeight(QFont.Normal)
+        painter.setFont(font)
+        painter.setPen(QColor(c["selected_text"] if selected else c["muted"]))
+        painter.drawText(rect.adjusted(12, 31, -12, -8), Qt.AlignVCenter, index.data(Qt.UserRole))
+        painter.restore()
 
 
 class EffectEditor(QWidget):
@@ -48,6 +93,7 @@ class EffectEditor(QWidget):
         self.loading = False
         form = QFormLayout(self)
         form.setContentsMargins(0, 0, 0, 0)
+        form.setVerticalSpacing(10)
         self.preset = QComboBox()
         self.preset.addItems(EFFECTS)
         self.color_button = QPushButton("Choose color")
@@ -83,10 +129,9 @@ class EffectEditor(QWidget):
             self.changed.emit()
 
     def paint_color(self):
-        self.color_button.setStyleSheet(
-            "background:rgb(%d,%d,%d); color:%s;"
-            % (*self.color, "#10141d" if sum(self.color) > 400 else "white")
-        )
+        swatch = QPixmap(16, 16)
+        swatch.fill(QColor(*self.color))
+        self.color_button.setIcon(QIcon(swatch))
         self.color_button.setText("#%02X%02X%02X" % tuple(self.color))
 
     def load(self, value):
@@ -137,19 +182,24 @@ class ActionEditor(QWidget):
         self.sequence = []
         self.layout_ = QVBoxLayout(self)
         self.layout_.setContentsMargins(0, 0, 0, 0)
+        self.layout_.setSpacing(12)
+        caption = QLabel("Action")
+        self.layout_.addWidget(caption)
         self.kind = QComboBox()
+        self.kind.setAccessibleName("Action type")
         for key, label in ACTION_LABELS.items():
             self.kind.addItem(label, key)
         self.layout_.addWidget(self.kind)
         self.details = QWidget()
         self.form = QFormLayout(self.details)
         self.form.setContentsMargins(0, 8, 0, 0)
+        self.form.setVerticalSpacing(8)
         self.layout_.addWidget(self.details)
         self.form.setRowWrapPolicy(QFormLayout.WrapAllRows)
         self.form.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
         self.capability = QLabel()
         self.capability.setWordWrap(True)
-        self.capability.setObjectName("muted")
+        self.capability.setObjectName("capability")
         self.layout_.addWidget(self.capability)
         self.kind.currentIndexChanged.connect(self.type_changed)
         self.load({"type": "none"})
@@ -240,6 +290,7 @@ class ActionEditor(QWidget):
             self.step_list.setMaximumHeight(170)
             self.form.addRow(self.step_list)
             row = QHBoxLayout()
+            row.setSpacing(6)
             for label, callback in (
                 ("+", self.add_step),
                 ("Edit", self.edit_step),
@@ -270,10 +321,14 @@ class ActionEditor(QWidget):
             note.setWordWrap(True)
             note.setObjectName("muted")
             self.form.addRow(note)
+        self.refresh_capability(action)
+        self.loading = False
+
+    def refresh_capability(self, action=None):
+        action = self.value() if action is None else action
         self.capability.setText(
             "Works independently" if independent(action) else "Requires background companion"
         )
-        self.loading = False
 
     def value(self):
         kind = self.kind.currentData()
@@ -299,6 +354,7 @@ class ActionEditor(QWidget):
     def refresh_steps(self):
         selected = self.step_list.currentRow()
         self.step_list.clear()
+        self.step_list.setFixedHeight(min(180, max(74, len(self.sequence) * 40 + 8)))
         for index, step in enumerate(self.sequence):
             label = ACTION_LABELS.get(step.get("type"), "Action")
             detail = (
@@ -380,57 +436,83 @@ class KeyButton(QPushButton):
         self.selected = False
         self.pressed = False
         self.theme = PALETTES["dark"]
-        self.setMinimumSize(84, 84)
+        self.setMinimumSize(64, 64)
         self.setAcceptDrops(True)
+        self.setCheckable(True)
         self.origin = None
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setCursor(Qt.PointingHandCursor)
+        self.setAttribute(Qt.WA_Hover, True)
 
     def paintEvent(self, event):
         p = QPainter(self)
         p.setRenderHint(QPainter.Antialiasing)
-        rect = self.rect().adjusted(5, 5, -5, -5)
+        rect = QRectF(self.rect()).adjusted(3, 3, -3, -5)
         color = QColor(*self.color)
-        gradient = QLinearGradient(0, 0, 0, self.height())
-        light = self.theme is PALETTES["light"]
-        if light:
-            gradient.setColorAt(0, QColor(252, 252, 252))
-            gradient.setColorAt(
-                1,
-                QColor(
-                    230 + color.red() // 12, 230 + color.green() // 12, 230 + color.blue() // 12
-                ),
-            )
-        else:
-            gradient.setColorAt(
-                0, QColor(48 + color.red() // 8, 48 + color.green() // 8, 48 + color.blue() // 8)
-            )
-            gradient.setColorAt(
-                1, QColor(33 + color.red() // 8, 33 + color.green() // 8, 33 + color.blue() // 8)
-            )
-        p.setBrush(gradient)
+        p.setPen(Qt.NoPen)
+        p.setBrush(QColor(self.theme["shadow"]))
+        p.drawRoundedRect(rect.translated(0, 3), 12, 12)
+        if self.pressed or self.isDown():
+            rect.translate(0, 2)
+        fill = (
+            self.theme["selected"]
+            if self.pressed
+            else self.theme["key_hover"] if self.underMouse() else self.theme["key"]
+        )
+        p.setBrush(QColor(fill))
         p.setPen(
             QPen(
-                (
-                    QColor(self.theme["focus"])
-                    if self.selected
-                    else (
-                        QColor(self.theme["text"]) if self.pressed else QColor(self.theme["border"])
-                    )
-                ),
+                QColor(self.theme["focus"] if self.selected else self.theme["key_edge"]),
                 2 if self.selected else 1,
             )
         )
-        p.drawRoundedRect(rect, 15, 15)
-        p.setFont(QFont("Helvetica Neue", 9))
-        p.setPen(QColor(self.theme["muted"] if light else self.theme["pico_text"]))
-        p.drawText(
-            rect.adjusted(11, 6, -9, -7), Qt.AlignTop | Qt.AlignLeft, str(self.index + 1).zfill(2)
-        )
-        p.setFont(QFont("Helvetica Neue", 11, QFont.Medium))
+        p.drawRoundedRect(rect, 12, 12)
+        if self.hasFocus():
+            p.setBrush(Qt.NoBrush)
+            p.setPen(QPen(QColor(self.theme["focus"]), 1, Qt.DotLine))
+            p.drawRoundedRect(rect.adjusted(4, 4, -4, -4), 9, 9)
+        font = QFont(self.font())
+        font.setPixelSize(10)
+        font.setWeight(QFont.Normal)
+        p.setFont(font)
+        p.setPen(QColor(self.theme["muted"]))
+        p.drawText(rect.adjusted(10, 7, -9, -7), Qt.AlignTop | Qt.AlignLeft, str(self.index + 1))
+        font.setPixelSize(11 if self.height() < 80 else 13)
+        font.setWeight(QFont.Medium)
+        p.setFont(font)
         p.setPen(QColor(self.theme["text"]))
-        p.drawText(rect.adjusted(8, 23, -8, -17), Qt.AlignCenter | Qt.TextWordWrap, self.label)
-        p.setPen(QPen(color.lighter(180), 3))
-        p.drawLine(rect.left() + 16, rect.bottom() - 9, rect.right() - 16, rect.bottom() - 9)
+        content = rect.adjusted(
+            8, 19 if self.height() < 80 else 25, -8, -13 if self.height() < 80 else -16
+        )
+        text_layout = QTextLayout(self.label, font)
+        text_layout.beginLayout()
+        lines = []
+        while True:
+            line = text_layout.createLine()
+            if not line.isValid():
+                break
+            line.setLineWidth(content.width())
+            lines.append((line.textStart(), line.textLength()))
+        text_layout.endLayout()
+        line_height = p.fontMetrics().height()
+        limit = max(1, min(3, int(content.height() / line_height)))
+        visible = lines[:limit]
+        y = content.center().y() - len(visible) * line_height / 2
+        for n, (start, length) in enumerate(visible):
+            text = self.label[start : start + length].strip()
+            if n == limit - 1 and len(lines) > limit:
+                text = p.fontMetrics().elidedText(
+                    self.label[start:], Qt.ElideRight, int(content.width())
+                )
+            p.drawText(
+                QRectF(content.left(), y, content.width(), line_height), Qt.AlignCenter, text
+            )
+            y += line_height
+        p.setPen(Qt.NoPen)
+        p.setBrush(color.lighter(180) if max(self.color) > 4 else QColor(self.theme["key_edge"]))
+        p.drawRoundedRect(
+            QRectF(rect.left() + 16, rect.bottom() - 11, rect.width() - 32, 3), 1.5, 1.5
+        )
 
     def mousePressEvent(self, event):
         self.origin = event.position().toPoint()
@@ -477,15 +559,15 @@ class Board(QWidget):
         self.key_effects = {}
         self.progress = {}
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(22, 22, 22, 22)
-        layout.setSpacing(18)
-        header = QLabel("●   RASPBERRY PI PICO   ●\nUSB CONNECTOR ↑")
+        layout.setContentsMargins(18, 16, 18, 16)
+        layout.setSpacing(14)
+        header = QLabel("↑  USB connector\nRaspberry Pi Pico")
         header.setAlignment(Qt.AlignCenter)
         header.setObjectName("pico")
-        header.setFixedHeight(72)
-        layout.addWidget(header)
+        header.setFixedSize(220, 46)
+        layout.addWidget(header, 0, Qt.AlignCenter)
         self.grid = QGridLayout()
-        self.grid.setSpacing(5)
+        self.grid.setSpacing(7)
         layout.addLayout(self.grid, 1)
         self.buttons = []
         for i in range(16):
@@ -496,14 +578,22 @@ class Board(QWidget):
             self.buttons.append(key)
         self.setObjectName("board")
         self.setAttribute(Qt.WA_StyledBackground, True)
-        self.setMinimumSize(460, 550)
-        self.setMaximumWidth(590)
+        self.setMinimumSize(360, 360)
+        self.setMaximumSize(540, 602)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.animate)
         self.timer.start(33)
 
     def sizeHint(self):
-        return QSize(520, 610)
+        return QSize(500, 558)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.timer.start(33)
+
+    def hideEvent(self, event):
+        self.timer.stop()
+        super().hideEvent(event)
 
     def set_theme(self, mode):
         for key in self.buttons:
@@ -516,7 +606,10 @@ class Board(QWidget):
             self.grid.removeWidget(key)
         for key in self.buttons:
             key.label = profile["keys"][key.index]["label"]
+            key.setAccessibleName("Key %d: %s" % (key.index + 1, key.label))
+            key.setToolTip("Key %d · %s\nClick to edit. Drag to swap." % (key.index + 1, key.label))
             key.selected = key.index == selected
+            key.setChecked(key.selected)
             x, y = key.index % 4, key.index // 4
             for _ in range(profile.get("orientation", 0) // 90):
                 x, y = 3 - y, x

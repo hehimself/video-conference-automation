@@ -43,3 +43,44 @@ The animation figures above are a short sample, not a long-duration benchmark.
 Opt-in hardware utilities are `tools/hardware_smoke.py` and `tools/hid_input_check.py`.
 The smoke utility temporarily changes the active device profile; quit the companion
 first and keep a private backup before running it. The HID check is Mac-specific.
+
+## Interface polish — 15 November 2026
+
+- 36 tests pass, including compact layout checks in both themes and action/state
+  editing with friendly labels that retain the existing protocol values.
+- Light and dark-gray layouts were visually reviewed at 1400 × 940 and 1100 × 760.
+  All 16 keys, device preview controls, and the fixed Test action footer fit without
+  overlapping. Lighting and Activity tabs were also reviewed at the compact size.
+- Original README banner, badges, keypad photograph, and connected-device
+  screenshot are retained alongside refreshed theme screenshots.
+- The updated Mac ARM64 application was packaged and launched with isolated
+  settings, no device connection, and only system directories on PATH. Its native
+  UI, SVG icons, and bundled icon license were checked.
+- This pass changes the desktop interface; firmware and the saved Pico profile
+  were not changed.
+
+## Quit behavior and primary button — 15 November 2026
+
+- All 43 automated tests pass.
+- Window close now quits; hiding the editor while keeping the companion running
+  requires the explicit menu choice. Native Quit, the Quit shortcut, and tray Quit
+  share one shutdown path.
+- Isolated Qt event-loop regressions cover close, native Quit events, the actual
+  assigned shortcut, background/reopen, quit while hidden, and Save/Discard/Cancel.
+  Each exits with the script process stopped, USB worker stopped, and singleton
+  socket released. Shutdown polls asynchronously rather than blocking the GUI.
+- Actual Cocoa windows also passed Command-Q and macOS normal-termination checks,
+  with the disposable script, USB worker, and singleton socket fully released.
+  The rebuilt standalone app exited successfully through window close.
+- Save to Pico uses white text on `#2563EB` (5.17:1 contrast); selection and focus
+  accents retain `#3A86FF`.
+
+## Native application icon — 15 November 2026
+
+- Shared vector artwork generates a transparent 1024px PNG, multi-resolution macOS
+  ICNS, and Windows ICO. Runtime and native packages use the same blue keypad.
+- The Mac build verifies `CFBundleIconFile` and the embedded ICNS bytes. After
+  targeted Launch Services registration, macOS `NSWorkspace.iconForFile` resolved
+  the correct blue keypad icon for the `.app` file itself.
+- The rebuilt standalone app launched and closed successfully with isolated
+  settings, no device connection, and only system directories on PATH.

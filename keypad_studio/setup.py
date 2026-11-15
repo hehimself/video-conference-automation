@@ -9,12 +9,12 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QFormLayout,
     QLineEdit,
-    QComboBox,
     QLabel,
     QPlainTextEdit,
     QPushButton,
     QFileDialog,
 )
+from keypad_studio.controls import ComboBox as QComboBox
 from keypad_studio.install import (
     backup,
     console_command,

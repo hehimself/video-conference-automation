@@ -1,23 +1,99 @@
-name: Test and package
-on: [push, pull_request, workflow_dispatch]
+name: Build and release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
 jobs:
   desktop:
+    name: ${{ matrix.target }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
     strategy:
+      fail-fast: false
       matrix:
-        os: [macos-14, windows-latest]
-    runs-on: ${{ matrix.os }}
+        include:
+          - runner: macos-15
+            target: macOS-arm64
+            architecture: arm64
+          - runner: macos-15-intel
+            target: macOS-x86_64
+            architecture: x64
+          - runner: windows-2025
+            target: Windows-x64
+            architecture: x64
+    defaults:
+      run:
+        shell: bash
+    env:
+      QT_QPA_PLATFORM: offscreen
+      RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.11'
-      - run: python -m pip install -e ".[dev]"
-      - run: python -m pytest
-        env:
-          QT_QPA_PLATFORM: offscreen
-      - run: python tools/build_firmware.py
-      - run: python tools/build_app.py
-      - uses: actions/upload-artifact@v4
+          architecture: ${{ matrix.architecture }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Verify release version
+        run: python tools/package_release.py --check-version
+      - name: Check formatting
+        run: python -m black --check --line-length 100 keypad_core keypad_studio firmware tools tests_v2 examples packaging/keypad_studio.spec
+      - name: Run tests
+        run: python -m pytest -q
+      - name: Build firmware bundle
+        run: python tools/build_firmware.py
+      - name: Build native application
+        run: python tools/build_app.py
+      - name: Package and test downloadable client
+        run: python tools/package_release.py --target "${{ matrix.target }}"
+      - name: Upload verified downloads
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: Keypad-Studio-${{ matrix.os }}
-          path: dist/
+          name: client-${{ matrix.target }}
+          path: release-assets/*
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    name: Publish GitHub release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: desktop
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.11'
+      - name: Download all three verified clients
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: client-*
+          merge-multiple: true
+          path: release-assets
+      - name: Verify, upload draft assets, and publish
+        run: python tools/publish_release.py
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}

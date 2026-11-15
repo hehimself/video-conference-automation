@@ -11,6 +11,7 @@ __pycache__/
 build/
 develop-eggs/
 dist/
+release-assets/
 downloads/
 eggs/
 .eggs/
@@ -32,6 +33,7 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+!packaging/keypad_studio.spec
 
 # Installer logs
 pip-log.txt
@@ -123,3 +125,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# macOS Finder metadata
+.DS_Store
+
+# Personal profile exported from the connected device
+/Current Pico.json

@@ -143,3 +143,63 @@ def test_new_script_actions_have_distinct_settings(app):
     for editor in (one, two):
         editor.kind.setCurrentIndex(editor.kind.findData("run_script"))
     assert one.value()["binding_id"] != two.value()["binding_id"]
+
+
+@pytest.mark.parametrize("theme", ["light", "dark"])
+def test_compact_editor_keeps_keys_preview_and_test_controls_separate(app, tmp_path, theme):
+    from PySide6.QtCore import QPoint, QRect
+    from PySide6.QtWidgets import QPushButton
+
+    library = Library(tmp_path)
+    device = DeviceWorker()
+    window = Window(library, device, Runner(library, device))
+    window.appearance.setCurrentIndex(window.appearance.findData(theme))
+    window.resize(1100, 760)
+    window.show()
+    app.processEvents()
+    center = window.board.parentWidget()
+    assert center.rect().contains(window.board.geometry())
+    assert window.board.geometry().bottom() < window.preview_button.geometry().top()
+    assert window.preview_button.geometry().bottom() < window.diagnostic.geometry().top()
+    for key in window.board.buttons:
+        bounds = QRect(key.mapTo(window.board, QPoint()), key.size())
+        assert window.board.rect().contains(bounds)
+        assert key.accessibleName().startswith("Key ")
+    test = next(b for b in window.findChildren(QPushButton) if b.text() == "Test action")
+    for tab in range(3):
+        window.tabs.setCurrentIndex(tab)
+        app.processEvents()
+        assert test.isVisibleTo(window)
+        assert window.tabs.geometry().bottom() < test.geometry().top()
+    window.hide()
+    assert not window.board.timer.isActive()
+    window.deleteLater()
+
+
+def test_friendly_trigger_and_state_labels_preserve_protocol_values(app, tmp_path):
+    from copy import deepcopy
+    from keypad_core.schema import effect, validate
+
+    library = Library(tmp_path)
+    device = DeviceWorker()
+    runner = Runner(library, device)
+    window = Window(library, device, runner)
+    press = deepcopy(window.action_editor.value())
+    os_name = window.profile["target_os"]
+    window.trigger.setCurrentIndex(window.trigger.findData("release"))
+    window.action_editor.load({"type": "hotkey", "keys": ["ctrl", "a"]})
+    window.capture()
+    window.trigger.setCurrentIndex(window.trigger.findData("press"))
+    assert window.action_editor.value() == press
+    actions = window.profile["keys"][0]["bindings"][os_name]
+    assert actions["release"] == {"type": "hotkey", "keys": ["ctrl", "a"]}
+    assert "On release" not in actions
+    window.state_choice.setCurrentIndex(window.state_choice.findData("error"))
+    window.override.setChecked(True)
+    window.key_effect.load(effect("blink", [200, 30, 30]))
+    window.capture()
+    assert window.profile["keys"][0]["lighting"]["error"]["name"] == "blink"
+    validate(window.profile)
+    assert not runner.runs
+    window.board.timer.stop()
+    window.deleteLater()

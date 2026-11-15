@@ -56,6 +56,8 @@ class DeviceWorker(QThread):
         return [sorted(group)[-1] for group in groups.values() if len(group) >= 2]
 
     def submit(self, name, args=None):
+        if self.stopping:
+            return
         if not self.info:
             self.failed.emit(name, "Connect a Pico with Keypad Studio firmware first")
             return
@@ -76,6 +78,8 @@ class DeviceWorker(QThread):
         return None
 
     def rpc(self, cmd, args=None):
+        if self.stopping:
+            raise InterruptedError("Device worker is stopping")
         self.counter += 1
         ident = self.counter
         raw = (
@@ -145,6 +149,8 @@ class DeviceWorker(QThread):
                         continue
                     next_attempt = time.monotonic() + 2
                     for port in self.candidates():
+                        if self.stopping:
+                            break
                         try:
                             self.serial = serial.Serial(
                                 port,
@@ -218,8 +224,32 @@ class DeviceWorker(QThread):
                         break
                 self.disconnected.emit(str(exc))
         if self.serial:
-            self.serial.close()
+            try:
+                if self.info:
+                    # Best-effort cleanup on the serial owner's thread. Do not wait
+                    # for replies or run queued actions after a quit request.
+                    for cmd, args in (
+                        ("preview_stop", {}),
+                        ("diagnostic", {"enabled": False}),
+                        ("hello", {}),
+                    ):
+                        self.counter += 1
+                        self.serial.write(
+                            (
+                                json.dumps({"v": 1, "id": self.counter, "cmd": cmd, "args": args})
+                                + "\n"
+                            ).encode()
+                        )
+            except Exception:
+                pass
+            finally:
+                self.serial.close()
+                self.serial = None
+                self.info = None
+
+    def request_stop(self):
+        self.stopping = True
 
     def stop(self):
-        self.stopping = True
-        self.wait(4000)
+        self.request_stop()
+        return self.wait(4000)

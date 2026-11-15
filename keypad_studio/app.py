@@ -3,26 +3,18 @@ import os
 import sys
 from pathlib import Path
 from PySide6.QtCore import QStandardPaths, QTimer
-from PySide6.QtGui import QAction, QColor, QIcon, QPainter, QPixmap
-from PySide6.QtWidgets import QApplication, QSystemTrayIcon, QMenu
+from PySide6.QtGui import QIcon, QFontDatabase
+from PySide6.QtWidgets import QSystemTrayIcon, QMenu
 from PySide6.QtNetwork import QLocalServer, QLocalSocket
 from keypad_studio.profiles import Library
 from keypad_studio.device import DeviceWorker
 from keypad_studio.runner import Runner
 from keypad_studio.window import Window
+from keypad_studio.lifecycle import StudioApplication, Lifecycle
 
 
 def icon():
-    pixmap = QPixmap(64, 64)
-    pixmap.fill(QColor("#14251f"))
-    p = QPainter(pixmap)
-    p.setPen(QColor("#8bf1c7"))
-    p.setBrush(QColor("#8bf1c7"))
-    for y in range(4):
-        for x in range(4):
-            p.drawRoundedRect(6 + x * 14, 6 + y * 14, 9, 9, 2, 2)
-    p.end()
-    return QIcon(pixmap)
+    return QIcon(str(Path(__file__).with_name("assets") / "app-icon.png"))
 
 
 def main():
@@ -46,7 +38,9 @@ def main():
 
         extract_latest(*args.zip_helper)
         return
-    app = QApplication(sys.argv)
+    app = StudioApplication(sys.argv)
+    app.setStyle("Fusion")
+    app.setFont(QFontDatabase.systemFont(QFontDatabase.GeneralFont))
     app.setApplicationName("Keypad Studio")
     app.setOrganizationName("Keypad Studio")
     app.setQuitOnLastWindowClosed(False)
@@ -78,46 +72,36 @@ def main():
     app_icon = icon()
     app.setWindowIcon(app_icon)
 
-    def show():
-        window.showNormal()
-        window.raise_()
-        window.activateWindow()
-
     def client():
         connection = server.nextPendingConnection()
         connection.close()
-        show()
+        lifecycle.show_editor()
 
     server.newConnection.connect(client)
     tray = QSystemTrayIcon(app_icon, app)
     tray.setToolTip("Keypad Studio")
+    lifecycle = Lifecycle(app, window, device, runner, tray, server)
     menu = QMenu()
-    menu.addAction("Open editor", show)
+    menu.addAction("Open editor", lifecycle.show_editor)
+    menu.addAction(lifecycle.background_action)
     profile_menu = menu.addMenu("Profiles")
     for profile in library.all():
         action = profile_menu.addAction(profile["name"])
         action.triggered.connect(
-            lambda checked=False, p=profile: (show(), window.refresh_library(p["id"]))
+            lambda checked=False, p=profile: (
+                lifecycle.show_editor(),
+                window.refresh_library(p["id"]),
+            )
         )
     menu.addSeparator()
 
-    def quit_app():
-        window.capture()
-        if not window.allow_discard():
-            return
-        for key in list(runner.runs):
-            runner.cancel(key)
-        if device.info:
-            device.submit("preview_stop")
-        device.stop()
-        tray.hide()
-        app.quit()
-
-    menu.addAction("Quit", quit_app)
+    menu.addAction(lifecycle.quit_action)
     tray.setContextMenu(menu)
-    tray.activated.connect(lambda reason: show() if reason == QSystemTrayIcon.Trigger else None)
+    tray.activated.connect(
+        lambda reason: lifecycle.show_editor() if reason == QSystemTrayIcon.Trigger else None
+    )
     tray.show()
-    show()
+    lifecycle.show_editor()
     if not args.no_device:
         device.start()
     app.aboutToQuit.connect(lambda: device.stop() if device.isRunning() else None)
@@ -125,7 +109,7 @@ def main():
 
         def capture():
             window.grab().save(args.screenshot)
-            quit_app()
+            window.close()
 
         QTimer.singleShot(1000, capture)
     return app.exec()

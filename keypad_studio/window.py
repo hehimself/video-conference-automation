@@ -14,11 +14,14 @@ from PySide6.QtWidgets import (
     QLabel,
     QPushButton,
     QListWidget,
+    QListWidgetItem,
+    QSizePolicy,
+    QMenu,
+    QGroupBox,
     QSplitter,
     QTabWidget,
     QFormLayout,
     QLineEdit,
-    QComboBox,
     QSpinBox,
     QDoubleSpinBox,
     QCheckBox,
@@ -27,12 +30,19 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QFileDialog,
     QInputDialog,
-    QFrame,
 )
+from keypad_studio.controls import ComboBox as QComboBox, ElidedLabel
 from keypad_core.schema import new_profile, validate, independent, effect
 from keypad_core.runtime import steps
 from keypad_studio.profiles import encode
-from keypad_studio.widgets import Board, ActionEditor, EffectEditor, BindingDialog, button
+from keypad_studio.widgets import (
+    Board,
+    ActionEditor,
+    EffectEditor,
+    BindingDialog,
+    ProfileDelegate,
+    button,
+)
 
 
 class Window(QMainWindow):
@@ -41,9 +51,11 @@ class Window(QMainWindow):
         self.library = library
         self.device = device
         self.runner = runner
+        self.quit_handler = None
+        self.closing = False
         self.setWindowTitle("Keypad Studio")
-        self.resize(1370, 920)
-        self.setMinimumSize(1150, 760)
+        self.resize(1400, 940)
+        self.setMinimumSize(1100, 760)
         self.loading = True
         self.profile = None
         self.selected = 0
@@ -63,20 +75,36 @@ class Window(QMainWindow):
         central = QWidget()
         self.setCentralWidget(central)
         outer = QVBoxLayout(central)
-        outer.setContentsMargins(24, 20, 24, 12)
-        outer.setSpacing(16)
-        top = QHBoxLayout()
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
+        header = QWidget()
+        header.setObjectName("header")
+        header.setAttribute(Qt.WA_StyledBackground, True)
+        top = QHBoxLayout(header)
+        top.setContentsMargins(24, 16, 24, 16)
+        top.setSpacing(12)
+        self.brand = QLabel()
+        self.brand.setObjectName("brand")
+        self.brand.setFixedSize(40, 40)
+        self.brand.setAlignment(Qt.AlignCenter)
+        top.addWidget(self.brand)
+        brand_text = QVBoxLayout()
+        brand_text.setSpacing(2)
         title = QLabel("Keypad Studio")
-        title.setObjectName("title")
-        top.addWidget(title)
+        title.setObjectName("appTitle")
+        brand_text.addWidget(title)
+        subtitle = QLabel("Your keys. Your workflow.")
+        subtitle.setObjectName("caption")
+        brand_text.addWidget(subtitle)
+        top.addLayout(brand_text)
         top.addStretch()
-        self.connection = QLabel("○  Editor ready · Pico not connected")
+        self.connection = QLabel("Pico not connected")
         self.connection.setObjectName("connection")
         top.addWidget(self.connection)
-        self.connect_button = button("Connection…", self.choose_port, top)
-        outer.addLayout(top)
-        button("Set up Pico…", self.setup_device, top)
+        self.connect_button = button("Connection…", self.choose_port, top, variant="ghost")
+        button("Set up Pico…", self.setup_device, top, variant="ghost")
         self.appearance = QComboBox()
+        self.appearance.setAccessibleName("Appearance")
         for label, value in (
             ("Dark gray", "dark"),
             ("Light", "light"),
@@ -88,57 +116,82 @@ class Window(QMainWindow):
             max(0, self.appearance.findData(library.settings.get("appearance", "dark")))
         )
         top.addWidget(self.appearance)
-        toolbar = QHBoxLayout()
-        button("Save locally", self.save_local, toolbar)
-        button("Read from Pico", self.read_device, toolbar)
-        self.preview_button = button("Preview on Pico", self.preview, toolbar)
-        button("Stop preview", lambda: self.device.submit("preview_stop"), toolbar)
-        toolbar.addStretch()
-        self.saved_label = QLabel("Local profile")
-        self.saved_label.setObjectName("muted")
-        toolbar.addWidget(self.saved_label)
-        self.save_device_button = button("Save to Pico", self.save_device, toolbar)
+        self.save_device_button = button("Save to Pico", self.save_device, top, icon_name="usb")
         self.save_device_button.setObjectName("primary")
-        outer.addLayout(toolbar)
-        split = QSplitter()
+        self.save_device_button.setToolTip("Save the active profile to the connected Pico")
+        outer.addWidget(header)
+        self.split = split = QSplitter()
+        split.setHandleWidth(1)
+        split.setChildrenCollapsible(False)
         outer.addWidget(split, 1)
+
         left = QWidget()
+        left.setObjectName("sidebar")
+        left.setAttribute(Qt.WA_StyledBackground, True)
+        left.setMinimumWidth(190)
+        left.setMaximumWidth(280)
         left_layout = QVBoxLayout(left)
-        left_layout.setContentsMargins(0, 0, 14, 0)
-        heading = QLabel("YOUR PROFILES")
-        heading.setObjectName("muted")
-        left_layout.addWidget(heading)
+        left_layout.setContentsMargins(16, 24, 16, 20)
+        left_layout.setSpacing(12)
+        row = QHBoxLayout()
+        heading = QLabel("Profiles")
+        heading.setObjectName("section")
+        row.addWidget(heading)
+        row.addStretch()
+        button("New", self.new_profile, row, icon_name="plus", variant="ghost")
+        left_layout.addLayout(row)
         self.profiles = QListWidget()
+        self.profiles.setAccessibleName("Profile library")
+        self.profiles.setItemDelegate(ProfileDelegate(self.profiles))
         left_layout.addWidget(self.profiles, 1)
         self.profiles.currentRowChanged.connect(self.select_profile)
-        row = QHBoxLayout()
-        button("New", self.new_profile, row)
-        button("Duplicate", self.duplicate, row)
-        left_layout.addLayout(row)
-        button("Rename", self.rename, left_layout)
-        row = QHBoxLayout()
-        button("Import", self.import_profile, row)
-        button("Export", self.export_profile, row)
-        left_layout.addLayout(row)
-        note = QLabel(
-            "The library stays on this computer.\nSave to Pico replaces its active profile."
+        options = button(
+            "Profile options", lambda: None, left_layout, icon_name="more", variant="ghost"
         )
+        profile_menu = QMenu(options)
+        profile_menu.addAction("Duplicate profile", self.duplicate)
+        profile_menu.addAction("Rename profile…", self.rename)
+        options.setMenu(profile_menu)
+        row = QHBoxLayout()
+        button("Import", self.import_profile, row, variant="ghost")
+        button("Export", self.export_profile, row, variant="ghost")
+        left_layout.addLayout(row)
+        note = QLabel("Your profile library is saved on this computer.")
         note.setWordWrap(True)
         note.setObjectName("muted")
         left_layout.addWidget(note)
+        left_layout.addSpacing(12)
+        button(
+            "Computer settings",
+            self.computer_settings,
+            left_layout,
+            icon_name="settings",
+            variant="subtle",
+        )
         split.addWidget(left)
+
         center = QWidget()
         middle = QVBoxLayout(center)
-        middle.setContentsMargins(15, 0, 15, 0)
-        self.profile_title = QLabel()
+        middle.setContentsMargins(26, 24, 26, 20)
+        middle.setSpacing(12)
+        profile_row = QHBoxLayout()
+        profile_text = QVBoxLayout()
+        profile_text.setSpacing(4)
+        self.profile_title = ElidedLabel()
         self.profile_title.setObjectName("title")
-        middle.addWidget(self.profile_title)
+        self.profile_title.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        profile_text.addWidget(self.profile_title)
+        self.saved_label = QLabel("Saved locally")
+        self.saved_label.setObjectName("saved")
+        profile_text.addWidget(self.saved_label)
+        profile_row.addLayout(profile_text, 1)
+        button("Save locally", self.save_local, profile_row, icon_name="save")
+        middle.addLayout(profile_row)
         target_row = QHBoxLayout()
-        target_row.addWidget(QLabel("Saved target"))
+        target_row.setSpacing(12)
         self.target = QComboBox()
         self.target.addItem("Windows", "windows")
         self.target.addItem("macOS", "macos")
-        target_row.addWidget(self.target)
         self.layout_choice = QComboBox()
         for label, value in (
             ("German · Windows", "de_windows"),
@@ -146,41 +199,107 @@ class Window(QMainWindow):
             ("US English", "us"),
         ):
             self.layout_choice.addItem(label, value)
-        target_row.addWidget(self.layout_choice)
+        for label, control in (("Target OS", self.target), ("Keyboard layout", self.layout_choice)):
+            column = QVBoxLayout()
+            column.setSpacing(6)
+            caption = QLabel(label)
+            caption.setObjectName("caption")
+            caption.setBuddy(control)
+            column.addWidget(caption)
+            column.addWidget(control)
+            target_row.addLayout(column, 1)
         middle.addLayout(target_row)
         self.board = Board()
         middle.addWidget(self.board, 1, Qt.AlignCenter)
         self.board.selected.connect(self.select_key)
         self.board.swapped.connect(self.swap)
-        hint = QLabel("Click a key to edit · drag to swap · labels appear in this app only")
+        hint = QLabel("Click to edit · drag to swap assignments")
         hint.setObjectName("muted")
         hint.setAlignment(Qt.AlignCenter)
         middle.addWidget(hint)
-        self.diagnostic = QCheckBox("Learn / diagnostic mode · suppress physical key actions")
+        toolbar = QHBoxLayout()
+        toolbar.setSpacing(8)
+        button("Read from Pico", self.read_device, toolbar, icon_name="download", variant="ghost")
+        toolbar.addStretch()
+        self.preview_button = button(
+            "Preview on Pico", self.preview, toolbar, icon_name="play", variant="subtle"
+        )
+        button(
+            "Stop",
+            lambda: self.device.submit("preview_stop"),
+            toolbar,
+            icon_name="stop",
+            variant="ghost",
+        ).setToolTip("Stop the lighting preview")
+        middle.addLayout(toolbar)
+        self.diagnostic = QCheckBox("Learn mode · suppress physical key actions")
+        self.diagnostic.setToolTip("Identify physical keys without executing their actions")
         self.diagnostic.toggled.connect(self.set_diagnostic)
         middle.addWidget(self.diagnostic)
-        button("Computer Settings…", self.computer_settings, middle)
         split.addWidget(center)
-        tabs = QTabWidget()
-        split.addWidget(tabs)
+
+        inspector = QWidget()
+        inspector.setObjectName("inspector")
+        inspector.setAttribute(Qt.WA_StyledBackground, True)
+        inspector.setMinimumWidth(320)
+        inspector.setMaximumWidth(440)
+        inspector_layout = QVBoxLayout(inspector)
+        inspector_layout.setContentsMargins(20, 24, 20, 12)
+        inspector_layout.setSpacing(16)
+        key_header = QHBoxLayout()
+        key_titles = QVBoxLayout()
+        key_titles.setSpacing(4)
+        self.key_heading = QLabel("Key 1")
+        self.key_heading.setObjectName("keyTitle")
+        self.key_context = QLabel()
+        self.key_context.setObjectName("caption")
+        key_titles.addWidget(self.key_heading)
+        key_titles.addWidget(self.key_context)
+        key_header.addLayout(key_titles, 1)
+        more = button("", lambda: None, key_header, icon_name="more", variant="ghost")
+        more.setAccessibleName("Key options")
+        more.setProperty("hideMenuIndicator", True)
+        more.setToolTip("Key options")
+        more.setFixedWidth(38)
+        key_menu = QMenu(more)
+        key_menu.addAction("Copy key", self.copy_key)
+        key_menu.addAction("Paste key", self.paste_key)
+        key_menu.addAction("Undo", self.undo)
+        key_menu.addSeparator()
+        key_menu.addAction("Use a legacy script-launch macro…", self.use_legacy)
+        more.setMenu(key_menu)
+        inspector_layout.addLayout(key_header)
+        self.tabs = tabs = QTabWidget()
+        tabs.setDocumentMode(True)
+        tabs.tabBar().setExpanding(True)
+        tabs.tabBar().setDrawBase(False)
+        inspector_layout.addWidget(tabs, 1)
+        split.addWidget(inspector)
         key_content = QWidget()
         key_layout = QVBoxLayout(key_content)
-        key_layout.setContentsMargins(12, 16, 0, 0)
-        self.key_heading = QLabel("KEY 01")
-        self.key_heading.setObjectName("muted")
-        key_layout.addWidget(self.key_heading)
+        key_layout.setContentsMargins(0, 20, 4, 8)
+        key_layout.setSpacing(16)
         form = QFormLayout()
+        form.setRowWrapPolicy(QFormLayout.WrapAllRows)
+        form.setVerticalSpacing(8)
         key_layout.addLayout(form)
         self.label = QLineEdit()
         self.label.setMaxLength(80)
-        form.addRow("Label", self.label)
+        form.addRow("Key label", self.label)
         self.trigger = QComboBox()
-        self.trigger.addItems(["press", "hold", "release"])
+        for caption, value in (
+            ("On press", "press"),
+            ("On hold", "hold"),
+            ("On release", "release"),
+        ):
+            self.trigger.addItem(caption, value)
         form.addRow("Trigger", self.trigger)
         self.action_editor = ActionEditor()
         key_layout.addWidget(self.action_editor)
-        timing = QFormLayout()
-        key_layout.addLayout(timing)
+        timing_box = QGroupBox("Timing and repeat")
+        timing = QFormLayout(timing_box)
+        timing.setContentsMargins(12, 16, 12, 12)
+        timing.setVerticalSpacing(10)
         self.hold = QSpinBox()
         self.hold.setRange(100, 10000)
         self.hold.setSuffix(" ms")
@@ -191,39 +310,53 @@ class Window(QMainWindow):
         self.repeat.setSuffix(" ms")
         self.repeat.setSingleStep(50)
         timing.addRow("Repeat press", self.repeat)
+        key_layout.addWidget(timing_box)
         controls = QHBoxLayout()
-        button("Copy", self.copy_key, controls)
-        button("Paste", self.paste_key, controls)
-        button("Undo", self.undo, controls)
+        controls.setSpacing(6)
+        button("Copy", self.copy_key, controls, icon_name="copy", variant="ghost")
+        button("Paste", self.paste_key, controls, icon_name="paste", variant="ghost")
+        button("Undo", self.undo, controls, icon_name="undo", variant="ghost")
         key_layout.addLayout(controls)
-        button("Test selected action", self.test_action, key_layout)
-        button("Cancel action", lambda: self.runner.cancel(self.selected), key_layout)
-        button("Use a legacy script-launch macro…", self.use_legacy, key_layout)
-        note = QLabel(
-            "Toggle colors are locally tracked. They do not verify the application's actual mute state."
+        test_row = QHBoxLayout()
+        button(
+            "Test action", self.test_action, test_row, icon_name="play", variant="subtle"
+        ).setToolTip(
+            "Run the selected action now. Editing and lighting previews do not run actions."
         )
-        note.setWordWrap(True)
-        note.setObjectName("muted")
-        key_layout.addWidget(note)
+        button("Cancel", lambda: self.runner.cancel(self.selected), test_row, variant="ghost")
         key_layout.addStretch()
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         scroll.setWidget(key_content)
         tabs.addTab(scroll, "Action")
         lights = QWidget()
         light_layout = QVBoxLayout(lights)
-        light_layout.setContentsMargins(12, 18, 0, 0)
-        light_layout.addWidget(QLabel("KEY LIGHTING"))
+        light_layout.setContentsMargins(0, 20, 4, 8)
+        light_layout.setSpacing(12)
+        heading = QLabel("Key state")
+        heading.setObjectName("section")
+        light_layout.addWidget(heading)
         self.state_choice = QComboBox()
-        self.state_choice.addItems(["idle", "pressed", "on", "off", "running", "success", "error"])
+        for state in ("idle", "pressed", "on", "off", "running", "success", "error"):
+            self.state_choice.addItem(state.capitalize(), state)
+        self.state_choice.setAccessibleName("Key lighting state")
         light_layout.addWidget(self.state_choice)
         self.override = QCheckBox("Customize this state")
         light_layout.addWidget(self.override)
         self.key_effect = EffectEditor()
         light_layout.addWidget(self.key_effect)
-        button("Preview local toggle", self.local_toggle, light_layout)
-        light_layout.addSpacing(28)
-        light_layout.addWidget(QLabel("WHOLE KEYPAD · IDLE"))
+        button("Preview local toggle", self.local_toggle, light_layout, variant="ghost")
+        note = QLabel(
+            "Toggle colors are locally tracked. They do not verify an app’s actual mute state."
+        )
+        note.setWordWrap(True)
+        note.setObjectName("notice")
+        light_layout.addWidget(note)
+        light_layout.addSpacing(12)
+        heading = QLabel("Whole keypad")
+        heading.setObjectName("section")
+        light_layout.addWidget(heading)
         self.board_style = EffectEditor()
         light_layout.addWidget(self.board_style)
         f = QFormLayout()
@@ -238,16 +371,30 @@ class Window(QMainWindow):
         light_layout.addStretch()
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         scroll.setWidget(lights)
         tabs.addTab(scroll, "Lighting")
         logs = QWidget()
         log_layout = QVBoxLayout(logs)
+        log_layout.setContentsMargins(0, 20, 0, 0)
+        log_layout.setSpacing(12)
+        caption = QLabel("Device events and script output")
+        caption.setObjectName("caption")
+        log_layout.addWidget(caption)
         self.log = QPlainTextEdit()
         self.log.setReadOnly(True)
+        self.log.setAccessibleName("Device events and script output")
+        self.log.setPlaceholderText(
+            "Activity appears here when a device connects or an action runs."
+        )
         self.log.setMaximumBlockCount(500)
         log_layout.addWidget(self.log)
         tabs.addTab(logs, "Activity")
-        split.setSizes([205, 660, 375])
+        inspector_layout.addLayout(test_row)
+        split.setSizes([220, 760, 380])
+        split.setStretchFactor(0, 0)
+        split.setStretchFactor(1, 1)
+        split.setStretchFactor(2, 0)
         for widget in (self.label, self.hold, self.repeat, self.brightness):
             (widget.textChanged if isinstance(widget, QLineEdit) else widget.valueChanged).connect(
                 self.schedule_capture
@@ -259,8 +406,8 @@ class Window(QMainWindow):
         self.rotation.currentTextChanged.connect(self.schedule_capture)
         self.target.currentIndexChanged.connect(self.switch_target)
         self.layout_choice.currentIndexChanged.connect(self.schedule_capture)
-        self.trigger.currentTextChanged.connect(self.switch_trigger)
-        self.state_choice.currentTextChanged.connect(self.switch_state)
+        self.trigger.currentIndexChanged.connect(self.switch_trigger)
+        self.state_choice.currentIndexChanged.connect(self.switch_state)
         self.device.connected.connect(self.on_connected)
         self.device.disconnected.connect(self.on_disconnected)
         self.device.completed.connect(self.on_completed)
@@ -286,7 +433,8 @@ class Window(QMainWindow):
 
     def apply_appearance(self):
         from PySide6.QtWidgets import QApplication
-        from keypad_studio.themes import apply_palette
+        from keypad_studio.themes import apply_palette, PALETTES
+        from keypad_studio.icons import icon, refresh_icons
 
         mode = self.appearance.currentData()
         if mode == "system":
@@ -297,6 +445,9 @@ class Window(QMainWindow):
             )
         apply_palette(QApplication.instance(), mode)
         self.board.set_theme(mode)
+        refresh_icons(self, PALETTES[mode])
+        self.brand.setPixmap(icon("grid", PALETTES[mode]["focus"]).pixmap(24, 24))
+        self.profiles.viewport().update()
 
     def change_appearance(self):
         self.library.settings["appearance"] = self.appearance.currentData()
@@ -323,7 +474,12 @@ class Window(QMainWindow):
         self.profiles.blockSignals(True)
         self.profiles.clear()
         for p in self.library_profiles:
-            self.profiles.addItem(p["name"])
+            item = QListWidgetItem(p["name"])
+            item.setToolTip(p["name"])
+            item.setData(
+                Qt.UserRole, ("macOS" if p["target_os"] == "macos" else "Windows") + " · 16 keys"
+            )
+            self.profiles.addItem(item)
         index = next((i for i, p in enumerate(self.library_profiles) if p["id"] == ident), 0)
         self.profiles.setCurrentRow(index)
         self.profiles.blockSignals(False)
@@ -387,12 +543,13 @@ class Window(QMainWindow):
         self.rotation.setCurrentText(str(self.profile.get("orientation", 0)))
         self.board_style.load(self.profile["lighting"])
         key = self.profile["keys"][self.selected]
-        self.key_heading.setText("KEY %02d · %s" % (self.selected + 1, self.edit_os.upper()))
+        self.key_heading.setText("Key %d" % (self.selected + 1))
+        self.key_context.setText("%s binding" % ("macOS" if self.edit_os == "macos" else "Windows"))
         self.label.setText(key["label"])
         self.hold.setValue(key.get("hold_ms", 500))
         self.repeat.setValue(key.get("repeat_ms", 0))
-        self.active_trigger = self.trigger.currentText()
-        self.active_state = self.state_choice.currentText()
+        self.active_trigger = self.trigger.currentData()
+        self.active_state = self.state_choice.currentData()
         self.action_editor.load(
             key["bindings"].get(self.edit_os, {}).get(self.active_trigger, {"type": "none"})
         )
@@ -447,7 +604,10 @@ class Window(QMainWindow):
         )
 
     def update_dirty(self):
-        self.saved_label.setText("Unsaved changes" if self.dirty else "Saved locally")
+        self.saved_label.setText("●  Unsaved changes" if self.dirty else "Saved locally")
+        self.saved_label.setProperty("dirty", self.dirty)
+        self.saved_label.style().unpolish(self.saved_label)
+        self.saved_label.style().polish(self.saved_label)
         self.setWindowTitle(
             self.profile["name"] + (" *" if self.dirty else "") + " · Keypad Studio"
         )
@@ -460,13 +620,13 @@ class Window(QMainWindow):
     def switch_trigger(self, value):
         if not self.loading:
             self.capture()
-            self.active_trigger = value
+            self.active_trigger = self.trigger.currentData()
             self.render()
 
     def switch_state(self, value):
         if not self.loading:
             self.capture()
-            self.active_state = value
+            self.active_state = self.state_choice.currentData()
             self.render()
 
     def switch_target(self, *args):
@@ -632,17 +792,24 @@ class Window(QMainWindow):
                 "Connection preference updated; reconnect the cable if already connected"
             )
 
+    def set_connection(self, text, connected):
+        self.connection.setText(text)
+        self.connection.setProperty("connected", connected)
+        self.connection.style().unpolish(self.connection)
+        self.connection.style().polish(self.connection)
+
     def on_connected(self, info):
         self.session = info["session"]
         self.event_floor = info.get("event_floor", 0)
         self.seen_events.clear()
-        self.connection.setText("●  Pico connected · firmware " + info["firmware"])
+        self.set_connection("Pico connected", True)
+        self.connection.setToolTip("Firmware " + info["firmware"])
         self.device_revision = info["revision"]
         self.verified_revision = None
         self.device_profile = None
 
     def on_disconnected(self, message):
-        self.connection.setText("○  Pico disconnected · editor available")
+        self.set_connection("Pico not connected", False)
         self.device_revision = None
         self.verified_revision = None
         self.board.pressed = {}
@@ -655,7 +822,8 @@ class Window(QMainWindow):
             self.device_profile = deepcopy(result["profile"])
             self.device_revision = result["meta"]["revision"]
             self.verified_revision = self.device_revision
-            self.connection.setText("●  Pico · " + self.device_profile["name"])
+            self.set_connection("Pico connected", True)
+            self.connection.setToolTip("Active profile: " + self.device_profile["name"])
             self.log.appendPlainText(
                 "Pico profile: %s · revision %d"
                 % (self.device_profile["name"], self.device_revision)
@@ -772,6 +940,8 @@ class Window(QMainWindow):
             self.board.key_effects[key] = (action["effect"], now)
 
     def on_event(self, event):
+        if self.closing:
+            return
         kind = event.get("type")
         key = event.get("key", 0)
         if not 0 <= key < 16:
@@ -840,5 +1010,8 @@ class Window(QMainWindow):
 
     def closeEvent(self, event):
         self.capture()
-        self.hide()
-        event.ignore()
+        allowed = self.quit_handler() if self.quit_handler else self.allow_discard()
+        if allowed:
+            event.accept()
+        else:
+            event.ignore()

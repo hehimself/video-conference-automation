@@ -10,7 +10,14 @@
 A visual Mac and Windows editor for the **Raspberry Pi Pico + Pimoroni RGB Keypad Base**.
 Click a virtual key, choose actions and lighting, and save the active profile to the Pico.
 
-![Keypad Studio in light mode with a connected Pico, visual key mapping, and the action editor](images/keypad-studio.jpg)
+**[Download Keypad Studio for macOS or Windows](https://github.com/hehimself/video-conference-automation/releases/latest)**
+
+Choose the Apple Silicon or Intel Mac disk image, or the Windows x64 ZIP. On Mac,
+drag the app from the disk image into Applications. On Windows, extract the full
+ZIP and open Keypad Studio.exe inside its folder. Python is not required. Builds
+are not notarized/commercially signed; see the release notes for OS prompts.
+
+![Keypad Studio in light mode with visual key mapping and the action inspector](images/editor-light.png)
 
 ## Hardware
 
@@ -22,11 +29,12 @@ A Raspberry Pi Pico mounted on the Pimoroni RGB Keypad Base, with 16 illuminated
 
 1. Open **Keypad Studio**. The editor works without a connected device.
 2. Select **Current Pico** or **Classic Conference**, or create a new profile.
+   **Profile options** contains Duplicate and Rename.
 3. Choose the target OS and keyboard layout. German Mac and Windows are distinct.
 4. Click a virtual key to edit its action, sequence, timing and lighting. Drag keys to
    swap assignments; Copy/Paste and Undo are available. Click a sequence step and
    Edit to configure it without writing JSON.
-5. Use **Computer Settings** to select scripts, interpreters, sound files and app paths.
+5. Use **Computer settings** in the sidebar to select scripts, interpreters, sound files and app paths.
 6. Preview lighting locally or on the connected Pico. Preview never saves flash or
    triggers physical key actions.
 7. **Save locally** keeps the profile in your computer's library. **Save to Pico**
@@ -35,8 +43,11 @@ A Raspberry Pi Pico mounted on the Pimoroni RGB Keypad Base, with 16 illuminated
 
 Keyboard shortcuts, media controls, text, keyboard macros and lighting work with the
 app fully quit. Scripts, app launch/focus, URLs and computer-side sequences require
-the background companion. Closing the window keeps the menu-bar/tray companion
-running. Choose **Quit** in its menu to stop it. Launch the app at login using the
+the background companion. Closing the window fully quits the app and companion,
+as do **Quit Keypad Studio**, **⌘Q** on Mac, and **Quit** in the Dock or tray menu.
+Unsaved edits offer Save, Discard, or Cancel. To hide the editor while keeping
+computer-side actions available, choose **File → Keep companion running** (also
+available from the menu-bar/tray icon). Launch the app at login using the
 operating system's Login Items / Startup Apps if desired.
 
 **Set up Pico** provides backup, CircuitPython upgrade and firmware installation
@@ -60,11 +71,19 @@ by the [UX Design Institute guide](https://www.uxdesigninstitute.com/blog/dark-m
 
 </details>
 
+<details>
+<summary>Original connected-device screenshot</summary>
+
+![Original Keypad Studio screenshot with a connected Pico](images/keypad-studio.jpg)
+
+</details>
+
 ## Starter profiles
 
 **Current Pico** reproduces the connected device's shortcuts, media keys, animations,
 and locally tracked toggles, with Mac variants. Script keys use the reliable direct
-runner by default. Choose **Use a legacy script-launch macro** to use standalone
+runner by default. Open the inspector's **Key options** menu (•••) and choose
+**Use a legacy script-launch macro** to use standalone
 Windows PowerShell launch sequences instead; edit their text steps to set your path.
 The original text-entry key is intentionally empty until re-entered.
 
@@ -111,6 +130,21 @@ chosen Python interpreter. The included GitHub Actions workflow tests and packag
 Mac and Windows independently. Local builds are unsigned; signing/notarization can
 be added for public distribution using the publisher's credentials.
 
+Open **Keypad Studio.app** in Finder on Mac. The application bundle includes the
+blue keypad icon for Finder and the Dock; Windows builds embed the same artwork.
+The icon source is `keypad_studio/assets/app-icon.svg`. To regenerate its PNG,
+ICNS and ICO files after editing it, run `python tools/build_icons.py` before building.
+
+To create and smoke-test the local download package, run
+`python tools/package_release.py --target macOS-arm64`, `--target macOS-x86_64`,
+or `--target Windows-x64` on the matching computer. Versioned DMG/ZIP files and
+their checksums are written to `release-assets/`.
+
+The **Build and release** workflow tests, builds, and packages all three targets on
+pushes and pull requests. Pushing a `vX.Y.Z` tag matching the project version also
+publishes a GitHub release after every client passes its packaged-app checks.
+Release assets are uploaded as a draft, verified, and then published together.
+
 ## Develop and extend
 
 - `keypad_core/`: portable schema, effects, cooperative scheduler, storage and protocol.
@@ -120,6 +154,7 @@ be added for public distribution using the publisher's credentials.
   can trigger real automation and are deliberately excluded from test discovery.
 - [Profile/action/protocol reference](docs/profile-format.md), including script feedback.
 - [Validation results and remaining platform checks](docs/validation.md).
+- [Interface design and UI Skills guidance](docs/interface-design.md).
 - `examples/progress_script.py`: a script that reports progress and a key state.
 
 ```sh
