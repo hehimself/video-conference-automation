@@ -26,15 +26,18 @@ jobs:
           - runner: macos-15
             target: macOS-arm64
             architecture: arm64
+            shell: bash
           - runner: macos-15-intel
             target: macOS-x86_64
             architecture: x64
+            shell: bash
           - runner: windows-2025
             target: Windows-x64
             architecture: x64
+            shell: pwsh
     defaults:
       run:
-        shell: bash
+        shell: ${{ matrix.shell }}
     env:
       QT_QPA_PLATFORM: offscreen
       RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
@@ -55,7 +58,7 @@ jobs:
       - name: Check formatting
         run: python -m black --check --line-length 100 keypad_core keypad_studio firmware tools tests_v2 examples packaging/keypad_studio.spec
       - name: Run tests
-        run: python -m pytest -q
+        run: python -X faulthandler -m pytest -q
       - name: Build firmware bundle
         run: python tools/build_firmware.py
       - name: Build native application
